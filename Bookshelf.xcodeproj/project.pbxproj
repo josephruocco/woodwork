@@ -1,0 +1,582 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BE5F0000000000000000A001 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F001 /* Book.swift */; };
+		BE5F0000000000000000A002 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F002 /* ShelfView.swift */; };
+		BE5F0000000000000000A003 /* BookshelfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F003 /* BookshelfApp.swift */; };
+		BE5F0000000000000000A004 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F001 /* Book.swift */; };
+		BE5F0000000000000000A005 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F002 /* ShelfView.swift */; };
+		BE5F0000000000000000A006 /* BookshelfWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F004 /* BookshelfWidget.swift */; };
+		BE5F0000000000000000A007 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F001 /* Book.swift */; };
+		BE5F0000000000000000A008 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F002 /* ShelfView.swift */; };
+		BE5F0000000000000000A009 /* ScannerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F005 /* ScannerApp.swift */; };
+		BE5F0000000000000000A010 /* LibraryScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F006 /* LibraryScanner.swift */; };
+		BE5F0000000000000000A011 /* BookshelfWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000E002 /* BookshelfWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		BE5F0000000000000000A012 /* books.json in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F007 /* books.json */; };
+		BE5F0000000000000000A013 /* books.json in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F007 /* books.json */; };
+		BE5F0000000000000000A014 /* ThemeAssets in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F011 /* ThemeAssets */; };
+		BE5F0000000000000000A015 /* ThemeAssets in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F011 /* ThemeAssets */; };
+		BE5F0000000000000000A016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F012 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BE5F0000000000000000C001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BE5F0000000000000000P001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = BE5F0000000000000000T002;
+			remoteInfo = BookshelfWidgetExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		BE5F0000000000000000B001 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				BE5F0000000000000000A011 /* BookshelfWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		BE5F0000000000000000E001 /* Bookshelf.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Bookshelf.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BE5F0000000000000000E002 /* BookshelfWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = BookshelfWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		BE5F0000000000000000E003 /* BookshelfScanner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BookshelfScanner.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BE5F0000000000000000F001 /* Book.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Book.swift; sourceTree = "<group>"; };
+		BE5F0000000000000000F002 /* ShelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
+		BE5F0000000000000000F003 /* BookshelfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfApp.swift; sourceTree = "<group>"; };
+		BE5F0000000000000000F004 /* BookshelfWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfWidget.swift; sourceTree = "<group>"; };
+		BE5F0000000000000000F005 /* ScannerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerApp.swift; sourceTree = "<group>"; };
+		BE5F0000000000000000F006 /* LibraryScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryScanner.swift; sourceTree = "<group>"; };
+		BE5F0000000000000000F007 /* books.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = books.json; sourceTree = "<group>"; };
+		BE5F0000000000000000F008 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BE5F0000000000000000F009 /* Bookshelf.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Bookshelf.entitlements; sourceTree = "<group>"; };
+		BE5F0000000000000000F010 /* BookshelfWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BookshelfWidget.entitlements; sourceTree = "<group>"; };
+		BE5F0000000000000000F011 /* ThemeAssets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ThemeAssets; sourceTree = "<group>"; };
+		BE5F0000000000000000F012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BE5F0000000000000000D001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE5F0000000000000000D002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE5F0000000000000000D003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BE5F0000000000000000G001 = {
+			isa = PBXGroup;
+			children = (
+				BE5F0000000000000000G002 /* Shared */,
+				BE5F0000000000000000G003 /* Bookshelf */,
+				BE5F0000000000000000G004 /* BookshelfWidget */,
+				BE5F0000000000000000G005 /* BookshelfScanner */,
+				BE5F0000000000000000G006 /* Resources */,
+				BE5F0000000000000000G007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BE5F0000000000000000G002 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				BE5F0000000000000000F001 /* Book.swift */,
+				BE5F0000000000000000F002 /* ShelfView.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		BE5F0000000000000000G003 /* Bookshelf */ = {
+			isa = PBXGroup;
+			children = (
+				BE5F0000000000000000F012 /* Assets.xcassets */,
+				BE5F0000000000000000F003 /* BookshelfApp.swift */,
+				BE5F0000000000000000F009 /* Bookshelf.entitlements */,
+			);
+			path = Bookshelf;
+			sourceTree = "<group>";
+		};
+		BE5F0000000000000000G004 /* BookshelfWidget */ = {
+			isa = PBXGroup;
+			children = (
+				BE5F0000000000000000F004 /* BookshelfWidget.swift */,
+				BE5F0000000000000000F008 /* Info.plist */,
+				BE5F0000000000000000F010 /* BookshelfWidget.entitlements */,
+			);
+			path = BookshelfWidget;
+			sourceTree = "<group>";
+		};
+		BE5F0000000000000000G005 /* BookshelfScanner */ = {
+			isa = PBXGroup;
+			children = (
+				BE5F0000000000000000F005 /* ScannerApp.swift */,
+				BE5F0000000000000000F006 /* LibraryScanner.swift */,
+			);
+			path = BookshelfScanner;
+			sourceTree = "<group>";
+		};
+		BE5F0000000000000000G006 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				BE5F0000000000000000F007 /* books.json */,
+				BE5F0000000000000000F011 /* ThemeAssets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		BE5F0000000000000000G007 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BE5F0000000000000000E001 /* Bookshelf.app */,
+				BE5F0000000000000000E002 /* BookshelfWidgetExtension.appex */,
+				BE5F0000000000000000E003 /* BookshelfScanner.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BE5F0000000000000000T001 /* Bookshelf */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BE5F0000000000000000L002 /* Build configuration list for PBXNativeTarget "Bookshelf" */;
+			buildPhases = (
+				BE5F0000000000000000S001 /* Sources */,
+				BE5F0000000000000000D001 /* Frameworks */,
+				BE5F0000000000000000R001 /* Resources */,
+				BE5F0000000000000000B001 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BE5F0000000000000000N001 /* PBXTargetDependency */,
+			);
+			name = Bookshelf;
+			productName = Bookshelf;
+			productReference = BE5F0000000000000000E001 /* Bookshelf.app */;
+			productType = "com.apple.product-type.application";
+		};
+		BE5F0000000000000000T002 /* BookshelfWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BE5F0000000000000000L003 /* Build configuration list for PBXNativeTarget "BookshelfWidgetExtension" */;
+			buildPhases = (
+				BE5F0000000000000000S002 /* Sources */,
+				BE5F0000000000000000D002 /* Frameworks */,
+				BE5F0000000000000000R002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BookshelfWidgetExtension;
+			productName = BookshelfWidgetExtension;
+			productReference = BE5F0000000000000000E002 /* BookshelfWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		BE5F0000000000000000T003 /* BookshelfScanner */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BE5F0000000000000000L004 /* Build configuration list for PBXNativeTarget "BookshelfScanner" */;
+			buildPhases = (
+				BE5F0000000000000000S003 /* Sources */,
+				BE5F0000000000000000D003 /* Frameworks */,
+				BE5F0000000000000000R003 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = BookshelfScanner;
+			productName = BookshelfScanner;
+			productReference = BE5F0000000000000000E003 /* BookshelfScanner.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BE5F0000000000000000P001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					BE5F0000000000000000T001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					BE5F0000000000000000T002 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					BE5F0000000000000000T003 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = BE5F0000000000000000L001 /* Build configuration list for PBXProject "Bookshelf" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BE5F0000000000000000G001;
+			productRefGroup = BE5F0000000000000000G007 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BE5F0000000000000000T001 /* Bookshelf */,
+				BE5F0000000000000000T002 /* BookshelfWidgetExtension */,
+				BE5F0000000000000000T003 /* BookshelfScanner */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BE5F0000000000000000R001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE5F0000000000000000A012 /* books.json in Resources */,
+				BE5F0000000000000000A014 /* ThemeAssets in Resources */,
+				BE5F0000000000000000A016 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE5F0000000000000000R002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE5F0000000000000000A013 /* books.json in Resources */,
+				BE5F0000000000000000A015 /* ThemeAssets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE5F0000000000000000R003 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BE5F0000000000000000S001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE5F0000000000000000A001 /* Book.swift in Sources */,
+				BE5F0000000000000000A002 /* ShelfView.swift in Sources */,
+				BE5F0000000000000000A003 /* BookshelfApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE5F0000000000000000S002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE5F0000000000000000A004 /* Book.swift in Sources */,
+				BE5F0000000000000000A005 /* ShelfView.swift in Sources */,
+				BE5F0000000000000000A006 /* BookshelfWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BE5F0000000000000000S003 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BE5F0000000000000000A007 /* Book.swift in Sources */,
+				BE5F0000000000000000A008 /* ShelfView.swift in Sources */,
+				BE5F0000000000000000A009 /* ScannerApp.swift in Sources */,
+				BE5F0000000000000000A010 /* LibraryScanner.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BE5F0000000000000000N001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = BE5F0000000000000000T002 /* BookshelfWidgetExtension */;
+			targetProxy = BE5F0000000000000000C001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		BE5F0000000000000000X001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		BE5F0000000000000000X002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BE5F0000000000000000X003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CODE_SIGN_ENTITLEMENTS = Bookshelf/Bookshelf.entitlements;
+				INFOPLIST_FILE = Bookshelf/Info.plist;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6BZ5M39S4D;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.josephruocco.bookshelf;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BE5F0000000000000000X004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = "";
+				CODE_SIGN_ENTITLEMENTS = Bookshelf/Bookshelf.entitlements;
+				INFOPLIST_FILE = Bookshelf/Info.plist;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6BZ5M39S4D;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.josephruocco.bookshelf;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BE5F0000000000000000X005 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = BookshelfWidget/BookshelfWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6BZ5M39S4D;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BookshelfWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.josephruocco.bookshelf.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		BE5F0000000000000000X006 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = BookshelfWidget/BookshelfWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6BZ5M39S4D;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = BookshelfWidget/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.josephruocco.bookshelf.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		BE5F0000000000000000X007 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6BZ5M39S4D;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.josephruocco.bookshelfscanner;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		BE5F0000000000000000X008 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 6BZ5M39S4D;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = NO;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.josephruocco.bookshelfscanner;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BE5F0000000000000000L001 /* Build configuration list for PBXProject "Bookshelf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE5F0000000000000000X001 /* Debug */,
+				BE5F0000000000000000X002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BE5F0000000000000000L002 /* Build configuration list for PBXNativeTarget "Bookshelf" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE5F0000000000000000X003 /* Debug */,
+				BE5F0000000000000000X004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BE5F0000000000000000L003 /* Build configuration list for PBXNativeTarget "BookshelfWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE5F0000000000000000X005 /* Debug */,
+				BE5F0000000000000000X006 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BE5F0000000000000000L004 /* Build configuration list for PBXNativeTarget "BookshelfScanner" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BE5F0000000000000000X007 /* Debug */,
+				BE5F0000000000000000X008 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BE5F0000000000000000P001 /* Project object */;
+}

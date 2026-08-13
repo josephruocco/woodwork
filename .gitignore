@@ -1,0 +1,15 @@
+# Xcode build output
+.build/
+.build-device/
+DerivedData/
+build/
+*.xcuserstate
+xcuserdata/
+
+# Page-count lookup cache — regenerates itself, and it's local state
+Resources/.pagecache.json
+
+.DS_Store
+
+# Personal library export — supply your own (see README)
+Resources/books.json
