@@ -1,0 +1,114 @@
+[
+ {
+  "id": "Moby-Dick|Herman Melville",
+  "title": "Moby-Dick",
+  "author": "Herman Melville",
+  "pages": 720,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Left Hand of Darkness|Ursula K. Le Guin",
+  "title": "The Left Hand of Darkness",
+  "author": "Ursula K. Le Guin",
+  "pages": 304,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Meditations|Marcus Aurelius",
+  "title": "Meditations",
+  "author": "Marcus Aurelius",
+  "pages": 254,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Middlemarch|George Eliot",
+  "title": "Middlemarch",
+  "author": "George Eliot",
+  "pages": 904,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Dune|Frank Herbert",
+  "title": "Dune",
+  "author": "Frank Herbert",
+  "pages": 688,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Odyssey|Homer",
+  "title": "The Odyssey",
+  "author": "Homer",
+  "pages": 560,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Beloved|Toni Morrison",
+  "title": "Beloved",
+  "author": "Toni Morrison",
+  "pages": 324,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Infinite Jest|David Foster Wallace",
+  "title": "Infinite Jest",
+  "author": "David Foster Wallace",
+  "pages": 1079,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Sea, The Sea|Iris Murdoch",
+  "title": "The Sea, The Sea",
+  "author": "Iris Murdoch",
+  "pages": 528,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Piranesi|Susanna Clarke",
+  "title": "Piranesi",
+  "author": "Susanna Clarke",
+  "pages": 245,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Gödel, Escher, Bach|Douglas Hofstadter",
+  "title": "Gödel, Escher, Bach",
+  "author": "Douglas Hofstadter",
+  "pages": 777,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Pale Fire|Vladimir Nabokov",
+  "title": "Pale Fire",
+  "author": "Vladimir Nabokov",
+  "pages": 246,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Waves|Virginia Woolf",
+  "title": "The Waves",
+  "author": "Virginia Woolf",
+  "pages": 297,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Blood Meridian|Cormac McCarthy",
+  "title": "Blood Meridian",
+  "author": "Cormac McCarthy",
+  "pages": 351,
+  "pagesEstimated": false
+ },
+ {
+  "id": "A Wizard of Earthsea|Ursula K. Le Guin",
+  "title": "A Wizard of Earthsea",
+  "author": "Ursula K. Le Guin",
+  "pages": 183,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Wolf Hall|Hilary Mantel",
+  "title": "Wolf Hall",
+  "author": "Hilary Mantel",
+  "pages": 653,
+  "pagesEstimated": false
+ }
+]
