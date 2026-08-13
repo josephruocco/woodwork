@@ -75,7 +75,6 @@ struct ShelfView: View {
             }
         }
         .background(Backdrop(theme: theme))
-        .overlay { ShelfFrame(theme: theme) }
     }
 
     private func shelfRow(_ row: [ShelfItem], height: CGFloat, width: CGFloat,
@@ -96,20 +95,6 @@ struct ShelfView: View {
             Board(thickness: boardThickness, theme: theme)
         }
         .frame(height: height)
-        .overlay(alignment: .leading) {
-            if theme == .realistic || theme == .walnut {
-                ShelfSide(theme: theme, lightOnLeadingSide: true)
-                    .frame(width: theme == .walnut ? 10 : 9)
-                    .padding(.vertical, 2)
-            }
-        }
-        .overlay(alignment: .trailing) {
-            if theme == .realistic || theme == .walnut {
-                ShelfSide(theme: theme, lightOnLeadingSide: false)
-                    .frame(width: theme == .walnut ? 10 : 9)
-                    .padding(.vertical, 2)
-            }
-        }
     }
 
     // MARK: - Layout
@@ -556,17 +541,22 @@ private struct Board: View {
     let theme: ShelfTheme
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            RoundedRectangle(cornerRadius: theme == .artsy ? 2 : 0, style: .continuous)
-                .fill(boardGradient)
-                .overlay(boardOverlay)
-                .frame(height: thickness)
-            Rectangle()
-                .fill(boardLipColor)
-                .frame(height: 1)
+        Group {
+            if theme == .walnut || theme == .realistic {
+                Color.clear.frame(height: thickness)
+            } else {
+                ZStack(alignment: .bottom) {
+                    RoundedRectangle(cornerRadius: theme == .artsy ? 2 : 0, style: .continuous)
+                        .fill(boardGradient)
+                        .overlay(boardOverlay)
+                        .frame(height: thickness)
+                    Rectangle()
+                        .fill(boardLipColor)
+                        .frame(height: 1)
+                }
+                .shadow(color: boardShadowColor, radius: 2.5, y: 2)
+            }
         }
-        .shadow(color: boardShadowColor,
-                radius: theme == .realistic ? 2.4 : 2.5, y: theme == .realistic ? 1.5 : 2)
     }
 
     private var boardGradient: LinearGradient {
@@ -685,103 +675,11 @@ private struct ShelfPlate: View {
     var body: some View {
         Group {
             switch theme {
-            case .walnut:
-                if let image = ThemeAssetImage.named("shelf-row") {
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .overlay(
-                            LinearGradient(colors: [.black.opacity(0.06), .clear, .black.opacity(0.16)],
-                                           startPoint: .top, endPoint: .bottom)
-                        )
-                } else {
-                    EmptyView()
-                }
-            case .realistic:
-                ZStack {
-                    Rectangle()
-                        .fill(
-                            LinearGradient(colors: [Color(red: 0.43, green: 0.40, blue: 0.30),
-                                                    Color(red: 0.24, green: 0.22, blue: 0.16)],
-                                           startPoint: .top, endPoint: .bottom)
-                        )
-                    Rectangle()
-                        .fill(.black.opacity(0.06))
-                        .padding(.horizontal, 11)
-                        .padding(.vertical, 7)
-                    Rectangle()
-                        .stroke(.white.opacity(0.04), lineWidth: 1)
-                        .padding(.horizontal, 11)
-                        .padding(.vertical, 7)
-                }
-            case .classic, .artsy:
+            case .classic, .walnut, .realistic, .artsy:
                 EmptyView()
             }
         }
         .clipped()
-    }
-}
-
-private struct ShelfSide: View {
-    let theme: ShelfTheme
-    let lightOnLeadingSide: Bool
-
-    var body: some View {
-        LinearGradient(
-            colors: colors,
-            startPoint: .leading,
-            endPoint: .trailing
-        )
-    }
-
-    private var colors: [Color] {
-        switch theme {
-        case .realistic:
-            return lightOnLeadingSide
-                ? [Color.white.opacity(0.75), Color(red: 0.76, green: 0.71, blue: 0.61)]
-                : [Color(red: 0.76, green: 0.71, blue: 0.61), Color.black.opacity(0.14)]
-        case .walnut:
-            return lightOnLeadingSide
-                ? [Color(red: 0.45, green: 0.28, blue: 0.15), Color(red: 0.18, green: 0.09, blue: 0.04)]
-                : [Color(red: 0.18, green: 0.09, blue: 0.04), Color.black.opacity(0.42)]
-        case .classic, .artsy:
-            return [.clear, .clear]
-        }
-    }
-}
-
-private struct ShelfFrame: View {
-    let theme: ShelfTheme
-
-    var body: some View {
-        if theme == .walnut || theme == .realistic {
-            RoundedRectangle(cornerRadius: theme == .realistic ? 24 : 16, style: .continuous)
-                .strokeBorder(frameGradient, lineWidth: theme == .realistic ? 12 : 11)
-                .overlay {
-                    RoundedRectangle(cornerRadius: theme == .realistic ? 20 : 13, style: .continuous)
-                        .strokeBorder(.black.opacity(theme == .realistic ? 0.18 : 0.44), lineWidth: 1.2)
-                        .padding(theme == .realistic ? 8 : 7)
-                }
-                .shadow(color: .black.opacity(theme == .realistic ? 0.20 : 0.42), radius: 5, y: 3)
-                .allowsHitTesting(false)
-        }
-    }
-
-    private var frameGradient: LinearGradient {
-        if theme == .realistic {
-            return LinearGradient(
-                colors: [Color(red: 0.99, green: 0.97, blue: 0.91),
-                         Color(red: 0.80, green: 0.75, blue: 0.65)],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        }
-        return LinearGradient(
-            colors: [Color(red: 0.49, green: 0.30, blue: 0.15),
-                     Color(red: 0.20, green: 0.10, blue: 0.045)],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
     }
 }
 
