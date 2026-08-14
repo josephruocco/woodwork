@@ -23,9 +23,9 @@ enum WidgetShelf: Int, AppEnum {
 
 struct SelectShelfIntent: WidgetConfigurationIntent {
     static let title: LocalizedStringResource = "WoodWork Shelf"
-    static let description = IntentDescription("Choose a different shelf for each widget.")
+    static let description = IntentDescription("Choose a different Shelf number for different books and layouts.")
 
-    @Parameter(title: "Books", default: .one)
+    @Parameter(title: "Shelf", default: .one)
     var shelf: WidgetShelf
 }
 
@@ -33,6 +33,8 @@ struct ShelfEntry: TimelineEntry {
     let date: Date
     let books: [Book]
     let theme: ShelfTheme
+    let shelf: Int
+    let layoutVariant: ShelfLayoutVariant
 }
 
 struct Provider: AppIntentTimelineProvider {
@@ -41,21 +43,31 @@ struct Provider: AppIntentTimelineProvider {
     private let poolSize = 60
 
     func placeholder(in context: Context) -> ShelfEntry {
-        ShelfEntry(date: .now, books: .samples, theme: ShelfSettings.loadTheme())
+        ShelfEntry(
+            date: .now,
+            books: .samples,
+            theme: ShelfSettings.loadTheme(),
+            shelf: 1,
+            layoutVariant: .balanced
+        )
     }
 
     func snapshot(for configuration: SelectShelfIntent, in context: Context) async -> ShelfEntry {
-        entry(at: .now, from: Library.load(), variation: configuration.shelf.rawValue)
+        let shelf = configuration.shelf.rawValue
+        if !context.isPreview { WidgetShelfRegistry.register(shelf: shelf) }
+        return entry(at: .now, from: Library.load(), shelf: shelf)
     }
 
     func timeline(for configuration: SelectShelfIntent, in context: Context) async -> Timeline<ShelfEntry> {
         let library = Library.load()
         let hour = Calendar.current.date(bytruncating: .now)
+        let shelf = configuration.shelf.rawValue
+        WidgetShelfRegistry.register(shelf: shelf)
         let entries = (0..<12).map {
             entry(
                 at: hour.addingTimeInterval(Double($0) * 3600),
                 from: library,
-                variation: configuration.shelf.rawValue
+                shelf: shelf
             )
         }
         return Timeline(entries: entries, policy: .atEnd)
@@ -63,14 +75,13 @@ struct Provider: AppIntentTimelineProvider {
 
     /// A fresh draw each hour, seeded by that hour so re-rendering the same entry
     /// never reshuffles the shelf under you.
-    private func entry(at date: Date, from library: [Book], variation: Int) -> ShelfEntry {
-        let hourSeed = UInt64(date.timeIntervalSince1970 / 3600)
-        let shelfSeed = UInt64(variation) &* 0x9E37_79B9_7F4A_7C15
-        var rng = SeededRNG(seed: hourSeed ^ shelfSeed ^ fnv1a("woodwork-widget"))
+    private func entry(at date: Date, from library: [Book], shelf: Int) -> ShelfEntry {
         return ShelfEntry(
             date: date,
-            books: Array(library.shuffled(using: &rng).prefix(poolSize)),
-            theme: ShelfSettings.loadTheme()
+            books: Book.onWidgetShelf(library, shelf: shelf, at: date, count: poolSize),
+            theme: ShelfSettings.loadTheme(),
+            shelf: shelf,
+            layoutVariant: .forShelf(shelf)
         )
     }
 }
@@ -84,10 +95,14 @@ private extension Calendar {
 struct BookshelfWidgetView: View {
     var entry: ShelfEntry
     var body: some View {
-        ShelfView(books: entry.books, theme: entry.theme)
+        ShelfView(
+            books: entry.books,
+            theme: entry.theme,
+            layoutVariant: entry.layoutVariant
+        )
             .containerBackground(for: .widget) { Color.black }
             // Tapping anywhere opens the app, which lists this hour's books.
-            .widgetURL(URL(string: "bookshelf://shelf"))
+            .widgetURL(URL(string: "bookshelf://shelf/\(entry.shelf)"))
     }
 }
 

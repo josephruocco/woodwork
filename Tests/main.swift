@@ -56,6 +56,12 @@ let variants = ShelfLayoutVariant.allCases.map {
 assert(Set(variants.map { $0.description }).count == variants.count,
        "layout variants should produce distinct shelf arrangements")
 
+let fixedHour = Date(timeIntervalSince1970: 1_800_000_000)
+let widgetShelfOne = Book.onWidgetShelf(library, shelf: 1, at: fixedHour)
+assert(widgetShelfOne == Book.onWidgetShelf(library, shelf: 1, at: fixedHour))
+assert(widgetShelfOne != Book.onWidgetShelf(library, shelf: 2, at: fixedHour),
+       "different widget shelves should display different books")
+
 // A small widget is too narrow for a flat pile.
 let narrow = ShelfView.layout(library, rows: 1, width: 150, spineHeight: 90)[0]
 assert(!narrow.contains { if case .stack = $0 { true } else { false } })
