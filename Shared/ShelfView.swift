@@ -234,7 +234,7 @@ struct ShelfView: View {
                 horizontalRange: 0.112...0.888,
                 cavities: [
                     ShelfCavity(top: 0.120, baseline: 0.447),
-                    ShelfCavity(top: 0.480, baseline: 0.862)
+                    ShelfCavity(top: 0.480, baseline: 0.880)
                 ]
             )
         case .realistic:
