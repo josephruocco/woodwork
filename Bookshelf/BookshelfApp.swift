@@ -10,8 +10,11 @@ struct BookshelfApp: App {
 }
 
 struct ContentView: View {
+    @Environment(\.scenePhase) private var scenePhase
     @State private var books = Library.load()
     @State private var theme = ShelfSettings.loadTheme()
+    @State private var widgetShelves = WidgetShelfRegistry.activeShelves()
+    @State private var selectedShelf = 1
     @State private var importing = false
     @State private var message: String?
 
@@ -20,14 +23,7 @@ struct ContentView: View {
             VStack(alignment: .leading, spacing: 18) {
                 header
 
-                ShelfView(books: shuffled, theme: theme)
-                    .frame(height: 350)
-                    .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 24, style: .continuous)
-                            .stroke(.white.opacity(theme == .artsy ? 0.18 : 0.10), lineWidth: 1)
-                    )
-                    .shadow(color: .black.opacity(theme == .artsy ? 0.10 : 0.14), radius: 18, y: 10)
+                widgetPager
 
                 themeCard
                 shelfNowCard
@@ -49,21 +45,30 @@ struct ContentView: View {
             .padding(.vertical, 18)
         }
         .background(appBackground)
+        .onAppear(perform: refreshWidgetShelves)
+        .onChange(of: scenePhase) { _, phase in
+            if phase == .active { refreshWidgetShelves() }
+        }
         .onChange(of: theme) { _, newTheme in
             ShelfSettings.saveTheme(newTheme)
             WidgetCenter.shared.reloadAllTimelines()
         }
+        .onOpenURL(perform: openWidgetShelf)
         .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
             handle(result)
         }
     }
 
-    private var shuffled: [Book] {
-        Book.onShelfNow(books, count: 60)
+    private var visibleWidgetShelves: [Int] {
+        widgetShelves.isEmpty ? [1] : widgetShelves
+    }
+
+    private var selectedShelfBooks: [Book] {
+        Book.onWidgetShelf(books, shelf: selectedShelf, count: 60)
     }
 
     private var featured: [Book] {
-        Book.onShelfNow(books)
+        Array(selectedShelfBooks.prefix(24))
     }
 
     private var header: some View {
@@ -116,18 +121,73 @@ struct ContentView: View {
         .background(panelBackground)
     }
 
+    private var widgetPager: some View {
+        VStack(spacing: 11) {
+            TabView(selection: $selectedShelf) {
+                ForEach(visibleWidgetShelves, id: \.self) { shelf in
+                    shelfPreview(shelf)
+                        .tag(shelf)
+                }
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .frame(height: 350)
+
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Widget Shelf \(selectedShelf)")
+                        .font(.subheadline.weight(.semibold))
+                    Text(ShelfLayoutVariant.forShelf(selectedShelf).label + " layout")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                HStack(spacing: 7) {
+                    ForEach(visibleWidgetShelves, id: \.self) { shelf in
+                        Button {
+                            withAnimation(.snappy) { selectedShelf = shelf }
+                        } label: {
+                            Circle()
+                                .fill(shelf == selectedShelf ? Color.primary : Color.secondary.opacity(0.25))
+                                .frame(width: 7, height: 7)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("Show Widget Shelf \(shelf)")
+                    }
+                }
+            }
+            .padding(.horizontal, 4)
+        }
+    }
+
+    private func shelfPreview(_ shelf: Int) -> some View {
+        ShelfView(
+            books: Book.onWidgetShelf(books, shelf: shelf, count: 60),
+            theme: theme,
+            layoutVariant: .forShelf(shelf)
+        )
+        .frame(height: 350)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(.white.opacity(theme == .artsy ? 0.18 : 0.10), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(theme == .artsy ? 0.10 : 0.14), radius: 18, y: 10)
+    }
+
     private var shelfNowCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("On Your Shelf")
                         .font(.headline)
-                    Text("The books currently surfaced by this view.")
+                    Text("Books displayed by Widget Shelf \(selectedShelf).")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Label("\(books.count)", systemImage: "books.vertical")
+                Label("Shelf \(selectedShelf)", systemImage: "books.vertical")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -184,6 +244,25 @@ struct ContentView: View {
         } catch {
             message = "Import failed: \(error.localizedDescription)"
         }
+    }
+
+    private func refreshWidgetShelves() {
+        let active = WidgetShelfRegistry.activeShelves()
+        widgetShelves = active
+        let visible = active.isEmpty ? [1] : active
+        if !visible.contains(selectedShelf), let first = visible.first {
+            selectedShelf = first
+        }
+    }
+
+    private func openWidgetShelf(_ url: URL) {
+        guard url.scheme == "bookshelf", url.host == "shelf",
+              let component = url.pathComponents.last,
+              let shelf = Int(component),
+              WidgetShelfRegistry.shelfRange.contains(shelf) else { return }
+        WidgetShelfRegistry.register(shelf: shelf)
+        refreshWidgetShelves()
+        selectedShelf = shelf
     }
 
     private var appBackground: some View {
