@@ -62,19 +62,54 @@ struct ShelfView: View {
 
     var body: some View {
         GeometryReader { geo in
-            let rows = themedRowCount(for: geo.size.height)
-            let rowH = geo.size.height / CGFloat(rows)
-            let usable = geo.size.width - sideInset * 2
-            let spineSpace = rowH - boardThickness - 6
-            let shelves = Self.layout(books, rows: rows, width: usable, spineHeight: spineSpace)
-
-            VStack(spacing: 0) {
-                ForEach(0..<rows, id: \.self) { row in
-                    shelfRow(shelves[row], height: rowH, width: usable, spineSpace: spineSpace)
-                }
+            if let metrics = framedShelfMetrics {
+                framedShelf(size: geo.size, metrics: metrics)
+            } else {
+                proceduralShelf(size: geo.size)
             }
         }
         .background(Backdrop(theme: theme))
+    }
+
+    private func proceduralShelf(size: CGSize) -> some View {
+        let rows = max(1, Int(size.height / rowHeight))
+        let rowH = size.height / CGFloat(rows)
+        let usable = size.width - sideInset * 2
+        let spineSpace = rowH - boardThickness - 6
+        let shelves = Self.layout(books, rows: rows, width: usable, spineHeight: spineSpace)
+
+        return VStack(spacing: 0) {
+            ForEach(0..<rows, id: \.self) { row in
+                shelfRow(shelves[row], height: rowH, width: usable, spineSpace: spineSpace)
+            }
+        }
+    }
+
+    private func framedShelf(size: CGSize, metrics: FramedShelfMetrics) -> some View {
+        let projected = metrics.projectedCavities(in: size)
+        let cavities = size.height >= 250 ? projected : Array(projected.prefix(1))
+
+        return ZStack(alignment: .topLeading) {
+            ForEach(cavities.indices, id: \.self) { index in
+                let cavity = cavities[index]
+                FramedCavityBooks(
+                    books: booksForFramedRow(index),
+                    theme: theme,
+                    row: index
+                )
+                .frame(width: cavity.width, height: cavity.height, alignment: .bottomLeading)
+                .clipped()
+                .offset(x: cavity.minX, y: cavity.minY)
+            }
+        }
+        .frame(width: size.width, height: size.height, alignment: .topLeading)
+        .clipped()
+    }
+
+    private func booksForFramedRow(_ row: Int) -> [Book] {
+        guard !books.isEmpty else { return [] }
+        let count = 12
+        return (0..<count).map { books[(row * count + $0) % books.count] }
     }
 
     private func shelfRow(_ row: [ShelfItem], height: CGFloat, width: CGFloat,
@@ -177,16 +212,7 @@ struct ShelfView: View {
         return best
     }
 
-    private var horizontalInset: CGFloat {
-        switch theme {
-        case .realistic:
-            sideInset + 10
-        case .walnut:
-            sideInset + 8
-        case .classic, .artsy:
-            sideInset
-        }
-    }
+    private var horizontalInset: CGFloat { sideInset }
 
     private var boardThickness: CGFloat {
         switch theme {
@@ -199,13 +225,170 @@ struct ShelfView: View {
         }
     }
 
-    private func themedRowCount(for height: CGFloat) -> Int {
+    private var framedShelfMetrics: FramedShelfMetrics? {
         switch theme {
-        case .walnut, .realistic:
-            return height >= 250 ? 2 : 1
+        case .walnut:
+            FramedShelfMetrics(
+                artworkAspectRatio: 1,
+                horizontalScale: 1.14,
+                horizontalRange: 0.105...0.895,
+                cavities: [
+                    ShelfCavity(top: 0.120, baseline: 0.443),
+                    ShelfCavity(top: 0.480, baseline: 0.855)
+                ]
+            )
+        case .realistic:
+            FramedShelfMetrics(
+                artworkAspectRatio: 1152.0 / 1365.0,
+                horizontalScale: 1.18,
+                horizontalRange: 0.105...0.895,
+                cavities: [
+                    ShelfCavity(top: 0.110, baseline: 0.498),
+                    ShelfCavity(top: 0.535, baseline: 0.890)
+                ]
+            )
         case .classic, .artsy:
-            return max(1, Int(height / rowHeight))
+            nil
         }
+    }
+}
+
+private struct ShelfCavity {
+    let top: CGFloat
+    let baseline: CGFloat
+}
+
+private struct FramedShelfMetrics {
+    let artworkAspectRatio: CGFloat
+    let horizontalScale: CGFloat
+    let horizontalRange: ClosedRange<CGFloat>
+    let cavities: [ShelfCavity]
+
+    func projectedCavities(in size: CGSize) -> [CGRect] {
+        // Shelf artwork is displayed aspect-fit. Project its measured
+        // normalized cubbies into the visible widget rectangle before laying out books.
+        let artworkSize: CGSize
+        if size.width / size.height > artworkAspectRatio {
+            artworkSize = CGSize(width: size.height * artworkAspectRatio, height: size.height)
+        } else {
+            artworkSize = CGSize(width: size.width, height: size.width / artworkAspectRatio)
+        }
+        let renderedWidth = artworkSize.width * horizontalScale
+        let origin = CGPoint(
+            x: (size.width - renderedWidth) / 2,
+            y: (size.height - artworkSize.height) / 2
+        )
+        let minX = max(0, origin.x + horizontalRange.lowerBound * renderedWidth)
+        let maxX = min(size.width, origin.x + horizontalRange.upperBound * renderedWidth)
+
+        return cavities.map { cavity in
+            let minY = max(2, origin.y + cavity.top * artworkSize.height)
+            let baseline = min(size.height - 2, origin.y + cavity.baseline * artworkSize.height)
+            return CGRect(
+                x: minX,
+                y: minY,
+                width: max(0, maxX - minX),
+                height: max(1, baseline - minY)
+            )
+        }
+        .filter { $0.height >= 24 && $0.width >= 40 }
+    }
+}
+
+private struct FramedCavityBooks: View {
+    let books: [Book]
+    let theme: ShelfTheme
+    let row: Int
+
+    var body: some View {
+        GeometryReader { geo in
+            Group {
+                switch theme {
+                case .walnut:
+                    darkOakComposition(size: geo.size)
+                case .realistic:
+                    whiteBuiltInComposition(size: geo.size)
+                case .classic, .artsy:
+                    EmptyView()
+                }
+            }
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .bottomLeading)
+        }
+    }
+
+    @ViewBuilder
+    private func darkOakComposition(size: CGSize) -> some View {
+        if row == 0 {
+            HStack(alignment: .bottom, spacing: max(2, size.width * 0.018)) {
+                FeaturedBookView(book: book(0), theme: theme)
+                    .frame(width: size.width * 0.15, height: size.height * 0.86)
+                upright(book(1), height: size.height * 0.78, scale: 0.68)
+                upright(book(2), height: size.height * 0.84, scale: 0.68)
+                ItemView(item: .stack([book(3), book(4), book(5)]),
+                         spineHeight: size.height * 0.68, theme: theme, thicknessScale: 0.64)
+                upright(book(6), height: size.height * 0.81, scale: 0.68)
+                upright(book(7), height: size.height * 0.75, scale: 0.68)
+                FeaturedBookView(book: book(8), theme: theme)
+                    .frame(width: size.width * 0.14, height: size.height * 0.80)
+            }
+            .padding(.horizontal, 2)
+        } else {
+            HStack(alignment: .bottom, spacing: max(1, size.width * 0.008)) {
+                upright(book(0), height: size.height * 0.88, scale: 0.70)
+                upright(book(1), height: size.height * 0.83, scale: 0.70)
+                upright(book(2), height: size.height * 0.91, scale: 0.70)
+                upright(book(3), height: size.height * 0.79, scale: 0.70)
+                FeaturedBookView(book: book(4), theme: theme)
+                    .frame(width: size.width * 0.19, height: size.height * 0.91)
+                upright(book(5), height: size.height * 0.84, scale: 0.70)
+                upright(book(6), height: size.height * 0.89, scale: 0.70)
+                upright(book(7), height: size.height * 0.81, scale: 0.70)
+                upright(book(8), height: size.height * 0.86, scale: 0.70)
+                upright(book(9), height: size.height * 0.78, scale: 0.66)
+                upright(book(10), height: size.height * 0.84, scale: 0.66)
+            }
+            .padding(.horizontal, 2)
+        }
+    }
+
+    @ViewBuilder
+    private func whiteBuiltInComposition(size: CGSize) -> some View {
+        if row == 0 {
+            HStack(alignment: .bottom, spacing: max(2, size.width * 0.016)) {
+                upright(book(0), height: size.height * 0.79, scale: 0.82)
+                upright(book(1), height: size.height * 0.91, scale: 0.82)
+                upright(book(2), height: size.height * 0.86, scale: 0.82)
+                upright(book(3), height: size.height * 0.82, scale: 0.82)
+                upright(book(4), height: size.height * 0.88, scale: 0.82)
+                upright(book(5), height: size.height * 0.76, scale: 0.82)
+                upright(book(6), height: size.height * 0.84, scale: 0.82)
+                ItemView(item: .leaning(book(7)), spineHeight: size.height * 0.84,
+                         theme: theme, thicknessScale: 0.78)
+            }
+            .padding(.horizontal, 2)
+        } else {
+            HStack(alignment: .bottom, spacing: max(2, size.width * 0.016)) {
+                ItemView(item: .stack([book(0), book(1), book(2)]),
+                         spineHeight: size.height * 0.66, theme: theme, thicknessScale: 0.62)
+                upright(book(3), height: size.height * 0.83, scale: 0.78)
+                upright(book(4), height: size.height * 0.91, scale: 0.78)
+                upright(book(5), height: size.height * 0.86, scale: 0.78)
+                upright(book(6), height: size.height * 0.79, scale: 0.78)
+                upright(book(7), height: size.height * 0.88, scale: 0.78)
+                upright(book(8), height: size.height * 0.82, scale: 0.78)
+                upright(book(9), height: size.height * 0.76, scale: 0.72)
+            }
+            .padding(.horizontal, 2)
+        }
+    }
+
+    private func upright(_ book: Book, height: CGFloat, scale: CGFloat) -> some View {
+        ItemView(item: .upright(book), spineHeight: height, theme: theme, thicknessScale: scale)
+    }
+
+    private func book(_ index: Int) -> Book {
+        let fallback: [Book] = .samples
+        return books.isEmpty ? fallback[index % fallback.count] : books[index % books.count]
     }
 }
 
@@ -215,6 +398,7 @@ private struct ItemView: View {
     let item: ShelfItem
     let spineHeight: CGFloat
     let theme: ShelfTheme
+    var thicknessScale: CGFloat = 1
 
     var body: some View {
         switch item {
@@ -245,7 +429,7 @@ private struct ItemView: View {
         let cloth = book.cloth
         let base = spineBaseColor(cloth)
         let ink = spineInkColor(cloth)
-        let thickness = book.spineWidth
+        let thickness = book.spineWidth * thicknessScale
 
         return ZStack {
             spineFill(base: base, cloth: cloth, vertical: vertical)
@@ -536,6 +720,96 @@ private struct ItemView: View {
     }
 }
 
+private struct FeaturedBookView: View {
+    let book: Book
+    let theme: ShelfTheme
+
+    var body: some View {
+        GeometryReader { geo in
+            let cloth = book.cloth
+            let base = coverColor(cloth)
+            let ink = cloth.isLight
+                ? Color(red: 0.16, green: 0.12, blue: 0.09)
+                : Color(red: 0.94, green: 0.88, blue: 0.72)
+
+            ZStack {
+                realisticCoverTexture(book: book)
+                    .colorMultiply(base)
+                    .overlay(
+                        LinearGradient(
+                            colors: [.white.opacity(0.10), .clear, .black.opacity(0.16)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                VStack(spacing: max(3, geo.size.height * 0.035)) {
+                    Text(book.author.uppercased())
+                        .font(.system(size: max(5, geo.size.width * 0.085), weight: .medium, design: .serif))
+                        .kerning(0.45)
+                        .lineLimit(2)
+
+                    Rectangle()
+                        .fill(ink.opacity(0.40))
+                        .frame(width: geo.size.width * 0.44, height: 0.6)
+
+                    Text(book.spineTitle)
+                        .font(coverTitleFont(size: max(8, geo.size.width * 0.16)))
+                        .lineLimit(4)
+                        .minimumScaleFactor(0.55)
+                        .allowsTightening(true)
+
+                    Spacer(minLength: 0)
+
+                    Image(systemName: "leaf")
+                        .font(.system(size: max(6, geo.size.width * 0.10), weight: .light))
+                        .opacity(0.58)
+                }
+                .foregroundStyle(ink)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, geo.size.width * 0.10)
+                .padding(.vertical, geo.size.height * 0.08)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: max(1.5, geo.size.width * 0.025), style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: max(1.5, geo.size.width * 0.025), style: .continuous)
+                    .stroke(.black.opacity(0.30), lineWidth: 0.65)
+            )
+            .shadow(color: .black.opacity(0.34), radius: 2, x: 1.5, y: 1.5)
+        }
+    }
+
+    private func coverTitleFont(size: CGFloat) -> Font {
+        switch book.typographyStyle {
+        case .modern:
+            .system(size: size, weight: .semibold, design: .rounded)
+        case .scholarly:
+            .system(size: size * 0.88, weight: .medium, design: .monospaced)
+        case .classic, .literary:
+            .system(size: size, weight: .regular, design: .serif)
+        }
+    }
+
+    private func coverColor(_ cloth: Cloth) -> Color {
+        let lift = theme == .realistic ? 0.07 : 0
+        return Color(
+            red: min(1, cloth.r * 0.90 + lift),
+            green: min(1, cloth.g * 0.90 + lift),
+            blue: min(1, cloth.b * 0.90 + lift)
+        )
+    }
+
+    @ViewBuilder
+    private func realisticCoverTexture(book: Book) -> some View {
+        let name = String(format: "spine-%02d", book.textureIndex)
+        if let image = ThemeAssetImage.named(name) {
+            image.resizable().aspectRatio(contentMode: .fill)
+        } else {
+            Color.white.opacity(0.55)
+        }
+    }
+}
+
 private struct Board: View {
     let thickness: CGFloat
     let theme: ShelfTheme
@@ -634,8 +908,8 @@ private struct Backdrop: View {
                                         Color(red: 0.06, green: 0.045, blue: 0.03)],
                                center: .center, startRadius: 20, endRadius: 220)
             case .realistic:
-                LinearGradient(colors: [Color(red: 0.42, green: 0.39, blue: 0.29),
-                                        Color(red: 0.25, green: 0.23, blue: 0.17)],
+                LinearGradient(colors: [Color(red: 0.88, green: 0.85, blue: 0.78),
+                                        Color(red: 0.74, green: 0.70, blue: 0.62)],
                                startPoint: .top, endPoint: .bottom)
             case .artsy:
                 LinearGradient(colors: [Color(red: 0.97, green: 0.95, blue: 0.90),
@@ -652,7 +926,8 @@ private struct Backdrop: View {
             if let assetName, let image = ThemeAssetImage.named(assetName, subdirectory: "ThemeAssets/Shelves") {
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fill)
+                    .aspectRatio(contentMode: .fit)
+                    .scaleEffect(x: artworkHorizontalScale, y: 1)
             }
         }
     }
@@ -665,6 +940,17 @@ private struct Backdrop: View {
             "white-built-in"
         case .classic, .artsy:
             nil
+        }
+    }
+
+    private var artworkHorizontalScale: CGFloat {
+        switch theme {
+        case .walnut:
+            1.14
+        case .realistic:
+            1.18
+        case .classic, .artsy:
+            1
         }
     }
 }
