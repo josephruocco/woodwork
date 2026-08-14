@@ -45,6 +45,17 @@ assert(ShelfView.layout(tiny, rows: 3, width: width, spineHeight: spineHeight)
 assert(ShelfView.layout(library, rows: 2, width: width, spineHeight: spineHeight).map(\.ids)
     == ShelfView.layout(library, rows: 2, width: width, spineHeight: spineHeight).map(\.ids))
 
+// Widget shelf slots cycle through three stable arrangements.
+assert(ShelfLayoutVariant.forShelf(1) == .balanced)
+assert(ShelfLayoutVariant.forShelf(2) == .stacked)
+assert(ShelfLayoutVariant.forShelf(3) == .gallery)
+assert(ShelfLayoutVariant.forShelf(4) == .balanced)
+let variants = ShelfLayoutVariant.allCases.map {
+    ShelfView.layout(library, rows: 2, width: width, spineHeight: spineHeight, variant: $0).map(\.ids)
+}
+assert(Set(variants.map { $0.description }).count == variants.count,
+       "layout variants should produce distinct shelf arrangements")
+
 // A small widget is too narrow for a flat pile.
 let narrow = ShelfView.layout(library, rows: 1, width: 150, spineHeight: 90)[0]
 assert(!narrow.contains { if case .stack = $0 { true } else { false } })

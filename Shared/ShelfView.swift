@@ -52,6 +52,7 @@ private func flatLength(_ book: Book, _ spineHeight: CGFloat) -> CGFloat {
 struct ShelfView: View {
     let books: [Book]
     var theme: ShelfTheme = .classic
+    var layoutVariant: ShelfLayoutVariant = .balanced
 
     private let rowHeight: CGFloat = 118
     private let sideInset: CGFloat = 5
@@ -76,7 +77,13 @@ struct ShelfView: View {
         let rowH = size.height / CGFloat(rows)
         let usable = size.width - sideInset * 2
         let spineSpace = rowH - boardThickness - 6
-        let shelves = Self.layout(books, rows: rows, width: usable, spineHeight: spineSpace)
+        let shelves = Self.layout(
+            books,
+            rows: rows,
+            width: usable,
+            spineHeight: spineSpace,
+            variant: layoutVariant
+        )
 
         return VStack(spacing: 0) {
             ForEach(0..<rows, id: \.self) { row in
@@ -95,7 +102,8 @@ struct ShelfView: View {
                 FramedCavityBooks(
                     books: booksForFramedRow(index),
                     theme: theme,
-                    row: index
+                    row: index,
+                    layoutVariant: layoutVariant
                 )
                 .frame(width: cavity.width, height: cavity.height, alignment: .bottomLeading)
                 .clipped()
@@ -135,14 +143,21 @@ struct ShelfView: View {
     // MARK: - Layout
 
     static func layout(_ pool: [Book], rows: Int, width: CGFloat,
-                       spineHeight: CGFloat) -> [[ShelfItem]] {
+                       spineHeight: CGFloat,
+                       variant: ShelfLayoutVariant = .balanced) -> [[ShelfItem]] {
         guard !pool.isEmpty else { return Array(repeating: [], count: rows) }
         var unused = pool
         return (0..<rows).map { row in
             // A library too small to stock every shelf repeats rather than
             // leaving rows bare.
             if unused.count < 6 { unused = pool }
-            let items = buildRow(unused, width: width, spineHeight: spineHeight, index: UInt64(row))
+            let items = buildRow(
+                unused,
+                width: width,
+                spineHeight: spineHeight,
+                index: UInt64(row),
+                variant: variant
+            )
             let taken = Set(items.flatMap(\.books).map(\.id))
             unused.removeAll { taken.contains($0.id) }
             return items
@@ -150,15 +165,24 @@ struct ShelfView: View {
     }
 
     private static func buildRow(_ books: [Book], width: CGFloat, spineHeight: CGFloat,
-                                 index: UInt64) -> [ShelfItem] {
-        var rng = SeededRNG(seed: index &* 7919 &+ fnv1a(books.first?.id ?? ""))
+                                 index: UInt64, variant: ShelfLayoutVariant) -> [ShelfItem] {
+        let variantSeed = UInt64(variant.rawValue + 1) &* 104_729
+        var rng = SeededRNG(seed: index &* 7919 &+ variantSeed &+ fnv1a(books.first?.id ?? ""))
         var pool = books
 
         // A flat pile needs room for a book on its side plus a few uprights, so
         // small widgets never get one.
         var pile: [ShelfItem] = []
-        if width >= 240, Int.random(in: 0..<10, using: &rng) < 5 {
-            let count = Int.random(in: 2...4, using: &rng)
+        let pileChance: Int
+        switch variant {
+        case .balanced: pileChance = 5
+        case .stacked: pileChance = 9
+        case .gallery: pileChance = 2
+        }
+        if width >= 240, Int.random(in: 0..<10, using: &rng) < pileChance {
+            let count = variant == .stacked
+                ? Int.random(in: 3...4, using: &rng)
+                : Int.random(in: 2...3, using: &rng)
             var picked: [Book] = []
             var stackHeight: CGFloat = 0
             for book in pool where picked.count < count {
@@ -177,8 +201,21 @@ struct ShelfView: View {
         let pileWidth = pile.first?.footprint(spineHeight: spineHeight) ?? 0
         // Leave some slack most of the time: a shelf packed wall-to-wall has
         // nothing for the last book to lean into.
-        let wantsLean = Int.random(in: 0..<10, using: &rng) < 7
-        let slack: CGFloat = wantsLean ? CGFloat(Int.random(in: 16...30, using: &rng)) : 0
+        let leanChance: Int
+        let slackRange: ClosedRange<Int>
+        switch variant {
+        case .balanced:
+            leanChance = 7
+            slackRange = 16...30
+        case .stacked:
+            leanChance = 3
+            slackRange = 8...16
+        case .gallery:
+            leanChance = 9
+            slackRange = 14...24
+        }
+        let wantsLean = Int.random(in: 0..<10, using: &rng) < leanChance
+        let slack: CGFloat = wantsLean ? CGFloat(Int.random(in: slackRange, using: &rng)) : 0
         let standing = bestFit(pool, width: max(0, width - pileWidth - slack - 2), row: index)
 
         // The book at the open end is the one that slumps.
@@ -299,6 +336,7 @@ private struct FramedCavityBooks: View {
     let books: [Book]
     let theme: ShelfTheme
     let row: Int
+    let layoutVariant: ShelfLayoutVariant
 
     var body: some View {
         GeometryReader { geo in
@@ -318,7 +356,8 @@ private struct FramedCavityBooks: View {
 
     @ViewBuilder
     private func darkOakComposition(size: CGSize) -> some View {
-        if row == 0 {
+        switch (layoutVariant, row) {
+        case (.balanced, 0):
             HStack(alignment: .bottom, spacing: 0) {
                 FeaturedBookView(book: book(0), theme: theme)
                     .frame(width: size.width * 0.17, height: size.height * 0.88)
@@ -332,7 +371,7 @@ private struct FramedCavityBooks: View {
                 uprightRun([11, 12], width: size.width * 0.09, size: size,
                            heights: [0.76, 0.82])
             }
-        } else {
+        case (.balanced, _):
             HStack(alignment: .bottom, spacing: 0) {
                 uprightRun([0, 1, 2, 3], width: size.width * 0.25, size: size,
                            heights: [0.88, 0.82, 0.91, 0.79])
@@ -341,21 +380,98 @@ private struct FramedCavityBooks: View {
                 uprightRun(Array(5...12), width: size.width * 0.54, size: size,
                            heights: [0.84, 0.90, 0.81, 0.86, 0.78, 0.88, 0.83, 0.89])
             }
+        case (.stacked, 0):
+            HStack(alignment: .bottom, spacing: 0) {
+                fittedStack([0, 1, 2], width: size.width * 0.24, size: size)
+                uprightRun(Array(3...7), width: size.width * 0.32, size: size,
+                           heights: [0.82, 0.90, 0.77, 0.86, 0.80])
+                FeaturedBookView(book: book(8), theme: theme)
+                    .frame(width: size.width * 0.22, height: size.height * 0.90)
+                uprightRun(Array(9...13), width: size.width * 0.22, size: size,
+                           heights: [0.84, 0.76, 0.88, 0.81, 0.86])
+            }
+        case (.stacked, _):
+            HStack(alignment: .bottom, spacing: 0) {
+                FeaturedBookView(book: book(0), theme: theme)
+                    .frame(width: size.width * 0.20, height: size.height * 0.91)
+                uprightRun(Array(1...6), width: size.width * 0.40, size: size,
+                           heights: [0.84, 0.90, 0.79, 0.87, 0.81, 0.88])
+                fittedStack([7, 8, 9], width: size.width * 0.24, size: size)
+                uprightRun(Array(10...13), width: size.width * 0.16, size: size,
+                           heights: [0.78, 0.86, 0.82, 0.89])
+            }
+        case (.gallery, 0):
+            HStack(alignment: .bottom, spacing: 0) {
+                uprightRun(Array(0...4), width: size.width * 0.34, size: size,
+                           heights: [0.79, 0.88, 0.82, 0.91, 0.76])
+                FeaturedBookView(book: book(5), theme: theme)
+                    .frame(width: size.width * 0.20, height: size.height * 0.92)
+                uprightRun(Array(6...10), width: size.width * 0.30, size: size,
+                           heights: [0.86, 0.80, 0.89, 0.77, 0.84])
+                FeaturedBookView(book: book(11), theme: theme)
+                    .frame(width: size.width * 0.16, height: size.height * 0.84)
+            }
+        case (.gallery, _):
+            HStack(alignment: .bottom, spacing: 0) {
+                uprightRun(Array(0...3), width: size.width * 0.24, size: size,
+                           heights: [0.88, 0.81, 0.91, 0.79])
+                FeaturedBookView(book: book(4), theme: theme)
+                    .frame(width: size.width * 0.20, height: size.height * 0.91)
+                uprightRun(Array(5...8), width: size.width * 0.25, size: size,
+                           heights: [0.84, 0.90, 0.78, 0.86])
+                FeaturedBookView(book: book(9), theme: theme)
+                    .frame(width: size.width * 0.18, height: size.height * 0.87)
+                uprightRun(Array(10...12), width: size.width * 0.13, size: size,
+                           heights: [0.82, 0.89, 0.77])
+            }
         }
     }
 
     @ViewBuilder
     private func whiteBuiltInComposition(size: CGSize) -> some View {
-        if row == 0 {
+        switch (layoutVariant, row) {
+        case (.balanced, 0):
             uprightRun(Array(0...13), width: size.width, size: size,
                        heights: [0.79, 0.91, 0.86, 0.82, 0.88, 0.76, 0.84,
                                  0.90, 0.81, 0.87, 0.78, 0.92, 0.83, 0.86])
-        } else {
+        case (.balanced, _):
             HStack(alignment: .bottom, spacing: 0) {
                 fittedStack([0, 1, 2], width: size.width * 0.25, size: size)
                 uprightRun(Array(3...14), width: size.width * 0.75, size: size,
                            heights: [0.83, 0.91, 0.86, 0.79, 0.88, 0.82,
                                      0.76, 0.90, 0.84, 0.78, 0.87, 0.81])
+            }
+        case (.stacked, 0):
+            HStack(alignment: .bottom, spacing: 0) {
+                fittedStack([0, 1, 2], width: size.width * 0.27, size: size)
+                uprightRun(Array(3...14), width: size.width * 0.73, size: size,
+                           heights: [0.83, 0.91, 0.78, 0.86, 0.81, 0.89,
+                                     0.76, 0.88, 0.82, 0.90, 0.79, 0.85])
+            }
+        case (.stacked, _):
+            HStack(alignment: .bottom, spacing: 0) {
+                uprightRun(Array(0...8), width: size.width * 0.58, size: size,
+                           heights: [0.80, 0.89, 0.84, 0.77, 0.91, 0.82, 0.87, 0.79, 0.86])
+                fittedStack([9, 10, 11], width: size.width * 0.25, size: size)
+                uprightRun(Array(12...14), width: size.width * 0.17, size: size,
+                           heights: [0.88, 0.81, 0.85])
+            }
+        case (.gallery, 0):
+            HStack(alignment: .bottom, spacing: 0) {
+                uprightRun(Array(0...8), width: size.width * 0.60, size: size,
+                           heights: [0.79, 0.90, 0.83, 0.88, 0.77, 0.86, 0.81, 0.92, 0.84])
+                fittedStack([9, 10, 11], width: size.width * 0.24, size: size)
+                uprightRun(Array(12...14), width: size.width * 0.16, size: size,
+                           heights: [0.80, 0.89, 0.84])
+            }
+        case (.gallery, _):
+            HStack(alignment: .bottom, spacing: 0) {
+                fittedStack([0, 1, 2], width: size.width * 0.24, size: size)
+                uprightRun(Array(3...8), width: size.width * 0.40, size: size,
+                           heights: [0.84, 0.91, 0.78, 0.87, 0.81, 0.89])
+                fittedStack([9, 10, 11], width: size.width * 0.23, size: size)
+                uprightRun(Array(12...14), width: size.width * 0.13, size: size,
+                           heights: [0.79, 0.88, 0.83])
             }
         }
     }
