@@ -219,6 +219,26 @@ enum ShelfTheme: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum ShelfLayoutVariant: Int, CaseIterable, Codable, Identifiable {
+    case balanced
+    case stacked
+    case gallery
+
+    var id: Int { rawValue }
+
+    var label: String {
+        switch self {
+        case .balanced: "Balanced"
+        case .stacked: "Stacked"
+        case .gallery: "Gallery"
+        }
+    }
+
+    static func forShelf(_ shelf: Int) -> ShelfLayoutVariant {
+        allCases[(max(1, shelf) - 1) % allCases.count]
+    }
+}
+
 enum ShelfSettings {
     private static let themeKey = "shelfTheme"
     private static let layoutKey = "shelfLayoutOptions"
