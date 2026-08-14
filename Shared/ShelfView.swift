@@ -108,7 +108,7 @@ struct ShelfView: View {
 
     private func booksForFramedRow(_ row: Int) -> [Book] {
         guard !books.isEmpty else { return [] }
-        let count = 12
+        let count = 16
         return (0..<count).map { books[(row * count + $0) % books.count] }
     }
 
@@ -231,16 +231,16 @@ struct ShelfView: View {
             FramedShelfMetrics(
                 artworkAspectRatio: 1,
                 horizontalScale: 1.14,
-                horizontalRange: 0.105...0.895,
+                horizontalRange: 0.112...0.888,
                 cavities: [
-                    ShelfCavity(top: 0.120, baseline: 0.443),
-                    ShelfCavity(top: 0.480, baseline: 0.855)
+                    ShelfCavity(top: 0.120, baseline: 0.447),
+                    ShelfCavity(top: 0.480, baseline: 0.862)
                 ]
             )
         case .realistic:
             FramedShelfMetrics(
                 artworkAspectRatio: 1152.0 / 1365.0,
-                horizontalScale: 1.18,
+                horizontalScale: 1.25,
                 horizontalRange: 0.105...0.895,
                 cavities: [
                     ShelfCavity(top: 0.110, baseline: 0.498),
@@ -319,67 +319,78 @@ private struct FramedCavityBooks: View {
     @ViewBuilder
     private func darkOakComposition(size: CGSize) -> some View {
         if row == 0 {
-            HStack(alignment: .bottom, spacing: max(2, size.width * 0.018)) {
+            HStack(alignment: .bottom, spacing: 0) {
                 FeaturedBookView(book: book(0), theme: theme)
-                    .frame(width: size.width * 0.15, height: size.height * 0.86)
-                upright(book(1), height: size.height * 0.78, scale: 0.68)
-                upright(book(2), height: size.height * 0.84, scale: 0.68)
-                ItemView(item: .stack([book(3), book(4), book(5)]),
-                         spineHeight: size.height * 0.68, theme: theme, thicknessScale: 0.64)
-                upright(book(6), height: size.height * 0.81, scale: 0.68)
-                upright(book(7), height: size.height * 0.75, scale: 0.68)
-                FeaturedBookView(book: book(8), theme: theme)
-                    .frame(width: size.width * 0.14, height: size.height * 0.80)
+                    .frame(width: size.width * 0.17, height: size.height * 0.88)
+                uprightRun([1, 2, 3], width: size.width * 0.16, size: size,
+                           heights: [0.78, 0.86, 0.81])
+                fittedStack([4, 5, 6], width: size.width * 0.23, size: size)
+                uprightRun([7, 8, 9], width: size.width * 0.17, size: size,
+                           heights: [0.84, 0.77, 0.88])
+                FeaturedBookView(book: book(10), theme: theme)
+                    .frame(width: size.width * 0.18, height: size.height * 0.84)
+                uprightRun([11, 12], width: size.width * 0.09, size: size,
+                           heights: [0.76, 0.82])
             }
-            .padding(.horizontal, 2)
         } else {
-            HStack(alignment: .bottom, spacing: max(1, size.width * 0.008)) {
-                upright(book(0), height: size.height * 0.88, scale: 0.70)
-                upright(book(1), height: size.height * 0.83, scale: 0.70)
-                upright(book(2), height: size.height * 0.91, scale: 0.70)
-                upright(book(3), height: size.height * 0.79, scale: 0.70)
+            HStack(alignment: .bottom, spacing: 0) {
+                uprightRun([0, 1, 2, 3], width: size.width * 0.25, size: size,
+                           heights: [0.88, 0.82, 0.91, 0.79])
                 FeaturedBookView(book: book(4), theme: theme)
-                    .frame(width: size.width * 0.19, height: size.height * 0.91)
-                upright(book(5), height: size.height * 0.84, scale: 0.70)
-                upright(book(6), height: size.height * 0.89, scale: 0.70)
-                upright(book(7), height: size.height * 0.81, scale: 0.70)
-                upright(book(8), height: size.height * 0.86, scale: 0.70)
-                upright(book(9), height: size.height * 0.78, scale: 0.66)
-                upright(book(10), height: size.height * 0.84, scale: 0.66)
+                    .frame(width: size.width * 0.21, height: size.height * 0.92)
+                uprightRun(Array(5...12), width: size.width * 0.54, size: size,
+                           heights: [0.84, 0.90, 0.81, 0.86, 0.78, 0.88, 0.83, 0.89])
             }
-            .padding(.horizontal, 2)
         }
     }
 
     @ViewBuilder
     private func whiteBuiltInComposition(size: CGSize) -> some View {
         if row == 0 {
-            HStack(alignment: .bottom, spacing: max(2, size.width * 0.016)) {
-                upright(book(0), height: size.height * 0.79, scale: 0.82)
-                upright(book(1), height: size.height * 0.91, scale: 0.82)
-                upright(book(2), height: size.height * 0.86, scale: 0.82)
-                upright(book(3), height: size.height * 0.82, scale: 0.82)
-                upright(book(4), height: size.height * 0.88, scale: 0.82)
-                upright(book(5), height: size.height * 0.76, scale: 0.82)
-                upright(book(6), height: size.height * 0.84, scale: 0.82)
-                ItemView(item: .leaning(book(7)), spineHeight: size.height * 0.84,
-                         theme: theme, thicknessScale: 0.78)
-            }
-            .padding(.horizontal, 2)
+            uprightRun(Array(0...13), width: size.width, size: size,
+                       heights: [0.79, 0.91, 0.86, 0.82, 0.88, 0.76, 0.84,
+                                 0.90, 0.81, 0.87, 0.78, 0.92, 0.83, 0.86])
         } else {
-            HStack(alignment: .bottom, spacing: max(2, size.width * 0.016)) {
-                ItemView(item: .stack([book(0), book(1), book(2)]),
-                         spineHeight: size.height * 0.66, theme: theme, thicknessScale: 0.62)
-                upright(book(3), height: size.height * 0.83, scale: 0.78)
-                upright(book(4), height: size.height * 0.91, scale: 0.78)
-                upright(book(5), height: size.height * 0.86, scale: 0.78)
-                upright(book(6), height: size.height * 0.79, scale: 0.78)
-                upright(book(7), height: size.height * 0.88, scale: 0.78)
-                upright(book(8), height: size.height * 0.82, scale: 0.78)
-                upright(book(9), height: size.height * 0.76, scale: 0.72)
+            HStack(alignment: .bottom, spacing: 0) {
+                fittedStack([0, 1, 2], width: size.width * 0.25, size: size)
+                uprightRun(Array(3...14), width: size.width * 0.75, size: size,
+                           heights: [0.83, 0.91, 0.86, 0.79, 0.88, 0.82,
+                                     0.76, 0.90, 0.84, 0.78, 0.87, 0.81])
             }
-            .padding(.horizontal, 2)
         }
+    }
+
+    private func uprightRun(_ indexes: [Int], width: CGFloat, size: CGSize,
+                            heights: [CGFloat]) -> some View {
+        let selected = indexes.map(book)
+        let rawWidth = max(1, selected.reduce(CGFloat.zero) { $0 + $1.spineWidth })
+        let scale = width / rawWidth
+
+        return HStack(alignment: .bottom, spacing: 0) {
+            ForEach(Array(selected.enumerated()), id: \.offset) { offset, selectedBook in
+                upright(selectedBook,
+                        height: size.height * heights[offset % heights.count],
+                        scale: scale)
+            }
+        }
+        .frame(width: width, height: size.height, alignment: .bottomLeading)
+        .clipped()
+    }
+
+    private func fittedStack(_ indexes: [Int], width: CGFloat, size: CGSize) -> some View {
+        let selected = indexes.map(book)
+        let maxHeightFactor = max(0.1, selected.map(\.heightFactor).max() ?? 1)
+        let stackHeight = selected.reduce(CGFloat.zero) { $0 + $1.spineWidth }
+        let thicknessScale = min(0.82, size.height * 0.42 / max(1, stackHeight))
+
+        return ItemView(
+            item: .stack(selected),
+            spineHeight: width / maxHeightFactor,
+            theme: theme,
+            thicknessScale: thicknessScale
+        )
+        .frame(width: width, height: size.height, alignment: .bottomLeading)
+        .clipped()
     }
 
     private func upright(_ book: Book, height: CGFloat, scale: CGFloat) -> some View {
@@ -948,7 +959,7 @@ private struct Backdrop: View {
         case .walnut:
             1.14
         case .realistic:
-            1.18
+            1.25
         case .classic, .artsy:
             1
         }
