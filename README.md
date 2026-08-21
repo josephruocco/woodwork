@@ -8,9 +8,6 @@ you forgot you owned. Pulling them out of the woodwork.
 Tap the widget and the app lists exactly what's currently on the shelf; tap a
 title and it opens in Apple Books or Kindle.
 
-`HANDOFF.md` has the full design rationale and the brief used to generate the
-photographic spine textures.
-
 ## What's in here
 
 | Target | Platform | Job |
@@ -80,10 +77,10 @@ Then replace it with your own export from the scanner.
 - **Deep links.** A widget can't launch another app: WidgetKit routes `Link` URLs
   to the containing app. So taps go through `bookshelf://`, and the app forwards
   to `ibooks://assetid/…` or `kindle://book?action=open&asin=…`.
-- **`ArtSource/` is not shipped.** It holds the full-size DALL·E generations;
-  only the cropped `Resources/ThemeAssets/**/final` files go into the app. They
-  were once wired into the bundle by accident, which put 74 MB into the app and
-  widget.
+- **`ArtSource/` is not shipped.** It holds the full-size source images for the
+  spine textures; only the cropped `Resources/ThemeAssets/**/final` files go into
+  the app. They were once wired into the bundle by accident, which put 74 MB into
+  the app and widget.
 
 ## Tests
 
