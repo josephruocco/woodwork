@@ -184,10 +184,26 @@ enum Library {
     /// then samples. The bundled fallback is what makes this work without a paid
     /// developer account, where App Groups aren't available.
     static func load() -> [Book] {
+        if ShelfSettings.showDemoBooks, let demo = demoLibrary() { return demo }
         if let url = sharedFile, let books = decode(url), !books.isEmpty { return books }
         if let url = Bundle.main.url(forResource: "books", withExtension: "json"),
            let books = decode(url), !books.isEmpty { return books }
-        return .samples
+        return demoLibrary() ?? .samples
+    }
+
+    /// A hundred-odd public domain titles, shipped in the bundle. It's what a
+    /// fresh install shows, and what makes screenshots reproducible for someone
+    /// who hasn't synced a library yet.
+    static func demoLibrary() -> [Book]? {
+        guard let url = Bundle.main.url(forResource: "demo", withExtension: "json"),
+              let books = decode(url), !books.isEmpty else { return nil }
+        return books
+    }
+
+    /// True once the user actually has books of their own to show.
+    static var hasOwnLibrary: Bool {
+        if let url = sharedFile, let books = decode(url), !books.isEmpty { return true }
+        return false
     }
 
     static func save(_ books: [Book]) throws {
@@ -253,6 +269,18 @@ enum ShelfLayoutVariant: Int, CaseIterable, Codable, Identifiable {
 enum ShelfSettings {
     private static let themeKey = "shelfTheme"
     private static let layoutKey = "shelfLayoutOptions"
+    private static let demoKey = "showDemoBooks"
+
+    /// On by default so a fresh install has a full shelf instead of an empty
+    /// one. Turned off automatically the first time a real library arrives.
+    static var showDemoBooks: Bool {
+        get {
+            guard let defaults = UserDefaults(suiteName: Library.appGroup),
+                  defaults.object(forKey: demoKey) != nil else { return true }
+            return defaults.bool(forKey: demoKey)
+        }
+        set { UserDefaults(suiteName: Library.appGroup)?.set(newValue, forKey: demoKey) }
+    }
 
     static func loadTheme() -> ShelfTheme {
         guard let defaults = UserDefaults(suiteName: Library.appGroup),

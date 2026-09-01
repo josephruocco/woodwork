@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var theme = ShelfSettings.loadTheme()
     @State private var widgetShelves = WidgetShelfRegistry.activeShelves()
     @State private var selectedShelf = 1
+    @State private var showDemo = ShelfSettings.showDemoBooks
     @State private var importing = false
     @State private var message: String?
 
@@ -26,6 +27,7 @@ struct ContentView: View {
                 widgetPager
 
                 themeCard
+                demoCard
                 shelfNowCard
                 footerRow
 
@@ -45,12 +47,23 @@ struct ContentView: View {
             .padding(.vertical, 18)
         }
         .background(appBackground)
-        .onAppear(perform: refreshWidgetShelves)
+        .onAppear {
+            refreshWidgetShelves()
+            Task { await syncFromCloud() }
+        }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active { refreshWidgetShelves() }
+            if phase == .active {
+                refreshWidgetShelves()
+                Task { await syncFromCloud() }
+            }
         }
         .onChange(of: theme) { _, newTheme in
             ShelfSettings.saveTheme(newTheme)
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+        .onChange(of: showDemo) { _, on in
+            ShelfSettings.showDemoBooks = on
+            books = Library.load()
             WidgetCenter.shared.reloadAllTimelines()
         }
         .onOpenURL(perform: openWidgetShelf)
@@ -209,6 +222,25 @@ struct ContentView: View {
         .background(panelBackground)
     }
 
+    private var demoCard: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Toggle(isOn: $showDemo) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Demo books")
+                        .font(.headline)
+                    Text(Library.hasOwnLibrary
+                         ? "Show a public domain shelf instead of your library."
+                         : "A public domain shelf, until your own library syncs.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .tint(Color(red: 0.45, green: 0.29, blue: 0.18))
+        }
+        .padding(18)
+        .background(panelBackground)
+    }
+
     private var footerRow: some View {
         HStack {
             Button("Import books.json…") { importing = true }
@@ -225,6 +257,24 @@ struct ContentView: View {
         .background(panelBackground)
     }
 
+    /// Pick up whatever the Mac scanner last published. Quiet on failure —
+    /// there's usually just nothing there yet, and the bundled library still
+    /// shows a shelf.
+    private func syncFromCloud() async {
+        guard let incoming = await CloudLibrary.fetch() else { return }
+        guard incoming != books else { return }
+        do {
+            try Library.save(incoming)
+            ShelfSettings.showDemoBooks = false
+            showDemo = false
+            books = incoming
+            WidgetCenter.shared.reloadAllTimelines()
+            message = "Synced \(incoming.count) books from your Mac."
+        } catch {
+            message = "Couldn't save the synced library: \(error.localizedDescription)"
+        }
+    }
+
     private func handle(_ result: Result<URL, Error>) {
         do {
             let url = try result.get()
@@ -238,6 +288,8 @@ struct ContentView: View {
             }
 
             try Library.save(imported)
+            ShelfSettings.showDemoBooks = false
+            showDemo = false
             books = imported
             WidgetCenter.shared.reloadAllTimelines()
             message = "Imported \(imported.count) books. The widget will refresh shortly."

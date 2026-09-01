@@ -1,0 +1,709 @@
+[
+ {
+  "id": "Moby-Dick|Herman Melville",
+  "title": "Moby-Dick",
+  "author": "Herman Melville",
+  "pages": 452,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Pride and Prejudice|Jane Austen",
+  "title": "Pride and Prejudice",
+  "author": "Jane Austen",
+  "pages": 351,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Frankenstein|Mary Shelley",
+  "title": "Frankenstein",
+  "author": "Mary Shelley",
+  "pages": 240,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Dracula|Bram Stoker",
+  "title": "Dracula",
+  "author": "Bram Stoker",
+  "pages": 384,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Jane Eyre|Charlotte Brontë",
+  "title": "Jane Eyre",
+  "author": "Charlotte Brontë",
+  "pages": 480,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Wuthering Heights|Emily Brontë",
+  "title": "Wuthering Heights",
+  "author": "Emily Brontë",
+  "pages": 318,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Great Expectations|Charles Dickens",
+  "title": "Great Expectations",
+  "author": "Charles Dickens",
+  "pages": 482,
+  "pagesEstimated": false
+ },
+ {
+  "id": "A Tale of Two Cities|Charles Dickens",
+  "title": "A Tale of Two Cities",
+  "author": "Charles Dickens",
+  "pages": 388,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Bleak House|Charles Dickens",
+  "title": "Bleak House",
+  "author": "Charles Dickens",
+  "pages": 815,
+  "pagesEstimated": false
+ },
+ {
+  "id": "David Copperfield|Charles Dickens",
+  "title": "David Copperfield",
+  "author": "Charles Dickens",
+  "pages": 742,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Crime and Punishment|Fyodor Dostoyevsky",
+  "title": "Crime and Punishment",
+  "author": "Fyodor Dostoyevsky",
+  "pages": 551,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Brothers Karamazov|Fyodor Dostoyevsky",
+  "title": "The Brothers Karamazov",
+  "author": "Fyodor Dostoyevsky",
+  "pages": 867,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Idiot|Fyodor Dostoyevsky",
+  "title": "The Idiot",
+  "author": "Fyodor Dostoyevsky",
+  "pages": 614,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Notes from Underground|Fyodor Dostoyevsky",
+  "title": "Notes from Underground",
+  "author": "Fyodor Dostoyevsky",
+  "pages": 240,
+  "pagesEstimated": false
+ },
+ {
+  "id": "War and Peace|Leo Tolstoy",
+  "title": "War and Peace",
+  "author": "Leo Tolstoy",
+  "pages": 696,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Anna Karenina|Leo Tolstoy",
+  "title": "Anna Karenina",
+  "author": "Leo Tolstoy",
+  "pages": 268,
+  "pagesEstimated": true
+ },
+ {
+  "id": "The Death of Ivan Ilyich|Leo Tolstoy",
+  "title": "The Death of Ivan Ilyich",
+  "author": "Leo Tolstoy",
+  "pages": 165,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Middlemarch|George Eliot",
+  "title": "Middlemarch",
+  "author": "George Eliot",
+  "pages": 793,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Silas Marner|George Eliot",
+  "title": "Silas Marner",
+  "author": "George Eliot",
+  "pages": 241,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Madame Bovary|Gustave Flaubert",
+  "title": "Madame Bovary",
+  "author": "Gustave Flaubert",
+  "pages": 351,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Les Misérables|Victor Hugo",
+  "title": "Les Misérables",
+  "author": "Victor Hugo",
+  "pages": 520,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Hunchback of Notre-Dame|Victor Hugo",
+  "title": "The Hunchback of Notre-Dame",
+  "author": "Victor Hugo",
+  "pages": 268,
+  "pagesEstimated": true
+ },
+ {
+  "id": "The Count of Monte Cristo|Alexandre Dumas",
+  "title": "The Count of Monte Cristo",
+  "author": "Alexandre Dumas",
+  "pages": 242,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Three Musketeers|Alexandre Dumas",
+  "title": "The Three Musketeers",
+  "author": "Alexandre Dumas",
+  "pages": 68,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Don Quixote|Miguel de Cervantes",
+  "title": "Don Quixote",
+  "author": "Miguel de Cervantes",
+  "pages": 795,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Odyssey|Homer",
+  "title": "The Odyssey",
+  "author": "Homer",
+  "pages": 352,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Iliad|Homer",
+  "title": "The Iliad",
+  "author": "Homer",
+  "pages": 564,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Aeneid|Virgil",
+  "title": "The Aeneid",
+  "author": "Virgil",
+  "pages": 268,
+  "pagesEstimated": true
+ },
+ {
+  "id": "The Divine Comedy|Dante Alighieri",
+  "title": "The Divine Comedy",
+  "author": "Dante Alighieri",
+  "pages": 430,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Meditations|Marcus Aurelius",
+  "title": "Meditations",
+  "author": "Marcus Aurelius",
+  "pages": 203,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Republic|Plato",
+  "title": "The Republic",
+  "author": "Plato",
+  "pages": 324,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Nicomachean Ethics|Aristotle",
+  "title": "Nicomachean Ethics",
+  "author": "Aristotle",
+  "pages": 329,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Essays|Michel de Montaigne",
+  "title": "Essays",
+  "author": "Michel de Montaigne",
+  "pages": 363,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Leviathan|Thomas Hobbes",
+  "title": "Leviathan",
+  "author": "Thomas Hobbes",
+  "pages": 508,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Prince|Niccolò Machiavelli",
+  "title": "The Prince",
+  "author": "Niccolò Machiavelli",
+  "pages": 156,
+  "pagesEstimated": false
+ },
+ {
+  "id": "On Liberty|John Stuart Mill",
+  "title": "On Liberty",
+  "author": "John Stuart Mill",
+  "pages": 176,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Wealth of Nations|Adam Smith",
+  "title": "The Wealth of Nations",
+  "author": "Adam Smith",
+  "pages": 581,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Walden|Henry David Thoreau",
+  "title": "Walden",
+  "author": "Henry David Thoreau",
+  "pages": 268,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Leaves of Grass|Walt Whitman",
+  "title": "Leaves of Grass",
+  "author": "Walt Whitman",
+  "pages": 384,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Self-Reliance|Ralph Waldo Emerson",
+  "title": "Self-Reliance",
+  "author": "Ralph Waldo Emerson",
+  "pages": 61,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Souls of Black Folk|W. E. B. Du Bois",
+  "title": "The Souls of Black Folk",
+  "author": "W. E. B. Du Bois",
+  "pages": 203,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Narrative of the Life of Frederick Douglass|Frederick Douglass",
+  "title": "Narrative of the Life of Frederick Douglass",
+  "author": "Frederick Douglass",
+  "pages": 127,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Uncle Tom's Cabin|Harriet Beecher Stowe",
+  "title": "Uncle Tom's Cabin",
+  "author": "Harriet Beecher Stowe",
+  "pages": 451,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Scarlet Letter|Nathaniel Hawthorne",
+  "title": "The Scarlet Letter",
+  "author": "Nathaniel Hawthorne",
+  "pages": 272,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Adventures of Huckleberry Finn|Mark Twain",
+  "title": "The Adventures of Huckleberry Finn",
+  "author": "Mark Twain",
+  "pages": 268,
+  "pagesEstimated": true
+ },
+ {
+  "id": "The Adventures of Tom Sawyer|Mark Twain",
+  "title": "The Adventures of Tom Sawyer",
+  "author": "Mark Twain",
+  "pages": 253,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Call of the Wild|Jack London",
+  "title": "The Call of the Wild",
+  "author": "Jack London",
+  "pages": 128,
+  "pagesEstimated": false
+ },
+ {
+  "id": "White Fang|Jack London",
+  "title": "White Fang",
+  "author": "Jack London",
+  "pages": 237,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Jungle|Upton Sinclair",
+  "title": "The Jungle",
+  "author": "Upton Sinclair",
+  "pages": 350,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Heart of Darkness|Joseph Conrad",
+  "title": "Heart of Darkness",
+  "author": "Joseph Conrad",
+  "pages": 136,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Lord Jim|Joseph Conrad",
+  "title": "Lord Jim",
+  "author": "Joseph Conrad",
+  "pages": 360,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Picture of Dorian Gray|Oscar Wilde",
+  "title": "The Picture of Dorian Gray",
+  "author": "Oscar Wilde",
+  "pages": 246,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Importance of Being Earnest|Oscar Wilde",
+  "title": "The Importance of Being Earnest",
+  "author": "Oscar Wilde",
+  "pages": 102,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Ulysses|James Joyce",
+  "title": "Ulysses",
+  "author": "James Joyce",
+  "pages": 736,
+  "pagesEstimated": false
+ },
+ {
+  "id": "A Portrait of the Artist as a Young Man|James Joyce",
+  "title": "A Portrait of the Artist as a Young Man",
+  "author": "James Joyce",
+  "pages": 252,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Dubliners|James Joyce",
+  "title": "Dubliners",
+  "author": "James Joyce",
+  "pages": 240,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Mrs Dalloway|Virginia Woolf",
+  "title": "Mrs Dalloway",
+  "author": "Virginia Woolf",
+  "pages": 224,
+  "pagesEstimated": false
+ },
+ {
+  "id": "To the Lighthouse|Virginia Woolf",
+  "title": "To the Lighthouse",
+  "author": "Virginia Woolf",
+  "pages": 242,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Waves|Virginia Woolf",
+  "title": "The Waves",
+  "author": "Virginia Woolf",
+  "pages": 256,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Great Gatsby|F. Scott Fitzgerald",
+  "title": "The Great Gatsby",
+  "author": "F. Scott Fitzgerald",
+  "pages": 185,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Sun Also Rises|Ernest Hemingway",
+  "title": "The Sun Also Rises",
+  "author": "Ernest Hemingway",
+  "pages": 249,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Trial|Franz Kafka",
+  "title": "The Trial",
+  "author": "Franz Kafka",
+  "pages": 340,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Metamorphosis|Franz Kafka",
+  "title": "The Metamorphosis",
+  "author": "Franz Kafka",
+  "pages": 96,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Castle|Franz Kafka",
+  "title": "The Castle",
+  "author": "Franz Kafka",
+  "pages": 481,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Siddhartha|Hermann Hesse",
+  "title": "Siddhartha",
+  "author": "Hermann Hesse",
+  "pages": 140,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Thus Spoke Zarathustra|Friedrich Nietzsche",
+  "title": "Thus Spoke Zarathustra",
+  "author": "Friedrich Nietzsche",
+  "pages": 268,
+  "pagesEstimated": true
+ },
+ {
+  "id": "Beyond Good and Evil|Friedrich Nietzsche",
+  "title": "Beyond Good and Evil",
+  "author": "Friedrich Nietzsche",
+  "pages": 173,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Gay Science|Friedrich Nietzsche",
+  "title": "The Gay Science",
+  "author": "Friedrich Nietzsche",
+  "pages": 282,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Faust|Johann Wolfgang von Goethe",
+  "title": "Faust",
+  "author": "Johann Wolfgang von Goethe",
+  "pages": 306,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Candide|Voltaire",
+  "title": "Candide",
+  "author": "Voltaire",
+  "pages": 152,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Time Machine|H. G. Wells",
+  "title": "The Time Machine",
+  "author": "H. G. Wells",
+  "pages": 120,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The War of the Worlds|H. G. Wells",
+  "title": "The War of the Worlds",
+  "author": "H. G. Wells",
+  "pages": 206,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Twenty Thousand Leagues Under the Sea|Jules Verne",
+  "title": "Twenty Thousand Leagues Under the Sea",
+  "author": "Jules Verne",
+  "pages": 369,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Around the World in Eighty Days|Jules Verne",
+  "title": "Around the World in Eighty Days",
+  "author": "Jules Verne",
+  "pages": 150,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Adventures of Sherlock Holmes|Arthur Conan Doyle",
+  "title": "The Adventures of Sherlock Holmes",
+  "author": "Arthur Conan Doyle",
+  "pages": 308,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Hound of the Baskervilles|Arthur Conan Doyle",
+  "title": "The Hound of the Baskervilles",
+  "author": "Arthur Conan Doyle",
+  "pages": 207,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Treasure Island|Robert Louis Stevenson",
+  "title": "Treasure Island",
+  "author": "Robert Louis Stevenson",
+  "pages": 248,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Dr. Jekyll and Mr. Hyde|Robert Louis Stevenson",
+  "title": "Dr. Jekyll and Mr. Hyde",
+  "author": "Robert Louis Stevenson",
+  "pages": 130,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Alice's Adventures in Wonderland|Lewis Carroll",
+  "title": "Alice's Adventures in Wonderland",
+  "author": "Lewis Carroll",
+  "pages": 133,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Through the Looking-Glass|Lewis Carroll",
+  "title": "Through the Looking-Glass",
+  "author": "Lewis Carroll",
+  "pages": 134,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Gulliver's Travels|Jonathan Swift",
+  "title": "Gulliver's Travels",
+  "author": "Jonathan Swift",
+  "pages": 278,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Robinson Crusoe|Daniel Defoe",
+  "title": "Robinson Crusoe",
+  "author": "Daniel Defoe",
+  "pages": 274,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Emma|Jane Austen",
+  "title": "Emma",
+  "author": "Jane Austen",
+  "pages": 457,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Sense and Sensibility|Jane Austen",
+  "title": "Sense and Sensibility",
+  "author": "Jane Austen",
+  "pages": 352,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Persuasion|Jane Austen",
+  "title": "Persuasion",
+  "author": "Jane Austen",
+  "pages": 268,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Awakening|Kate Chopin",
+  "title": "The Awakening",
+  "author": "Kate Chopin",
+  "pages": 214,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Age of Innocence|Edith Wharton",
+  "title": "The Age of Innocence",
+  "author": "Edith Wharton",
+  "pages": 348,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Ethan Frome|Edith Wharton",
+  "title": "Ethan Frome",
+  "author": "Edith Wharton",
+  "pages": 98,
+  "pagesEstimated": false
+ },
+ {
+  "id": "My Ántonia|Willa Cather",
+  "title": "My Ántonia",
+  "author": "Willa Cather",
+  "pages": 264,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Yellow Wallpaper|Charlotte Perkins Gilman",
+  "title": "The Yellow Wallpaper",
+  "author": "Charlotte Perkins Gilman",
+  "pages": 268,
+  "pagesEstimated": true
+ },
+ {
+  "id": "A Room with a View|E. M. Forster",
+  "title": "A Room with a View",
+  "author": "E. M. Forster",
+  "pages": 204,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Howards End|E. M. Forster",
+  "title": "Howards End",
+  "author": "E. M. Forster",
+  "pages": 342,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Wind in the Willows|Kenneth Grahame",
+  "title": "The Wind in the Willows",
+  "author": "Kenneth Grahame",
+  "pages": 192,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Peter Pan|J. M. Barrie",
+  "title": "Peter Pan",
+  "author": "J. M. Barrie",
+  "pages": 183,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Anne of Green Gables|L. M. Montgomery",
+  "title": "Anne of Green Gables",
+  "author": "L. M. Montgomery",
+  "pages": 309,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Little Women|Louisa May Alcott",
+  "title": "Little Women",
+  "author": "Louisa May Alcott",
+  "pages": 424,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Secret Garden|Frances Hodgson Burnett",
+  "title": "The Secret Garden",
+  "author": "Frances Hodgson Burnett",
+  "pages": 256,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Black Beauty|Anna Sewell",
+  "title": "Black Beauty",
+  "author": "Anna Sewell",
+  "pages": 229,
+  "pagesEstimated": false
+ },
+ {
+  "id": "The Wonderful Wizard of Oz|L. Frank Baum",
+  "title": "The Wonderful Wizard of Oz",
+  "author": "L. Frank Baum",
+  "pages": 159,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Tess of the d'Urbervilles|Thomas Hardy",
+  "title": "Tess of the d'Urbervilles",
+  "author": "Thomas Hardy",
+  "pages": 457,
+  "pagesEstimated": false
+ },
+ {
+  "id": "Far from the Madding Crowd|Thomas Hardy",
+  "title": "Far from the Madding Crowd",
+  "author": "Thomas Hardy",
+  "pages": 424,
+  "pagesEstimated": false
+ }
+]

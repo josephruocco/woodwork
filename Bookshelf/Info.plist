@@ -4,6 +4,11 @@
 <dict>
 	<key>CFBundleDisplayName</key>
 	<string>WoodWork</string>
+	<!-- Required for App Store upload. Xcode's generated-plist merge doesn't
+	     add this when the target supplies its own Info.plist, as ours does for
+	     the bookshelf:// URL scheme. -->
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

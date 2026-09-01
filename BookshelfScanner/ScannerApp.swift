@@ -60,10 +60,9 @@ struct ScannerView: View {
         panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser
             .appending(path: "Library/Containers/com.apple.iBooksX/Data/Documents")
         guard panel.runModal() == .OK, let picked = panel.url else { return }
-        let db = picked.pathExtension == "sqlite" ? picked
-            : (try? FileManager.default.contentsOfDirectory(at: picked, includingPropertiesForKeys: nil))?
-                .first { $0.pathExtension == "sqlite" }
-        guard let db else { return }
+        // Remember the grant so the sandbox lets us back in next launch.
+        LibraryBookmark.save(picked)
+        guard let db = LibraryScanner.sqliteFile(in: picked) else { return }
         Task { await scanner.scan(booksDBOverride: db) }
     }
 

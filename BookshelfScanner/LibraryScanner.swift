@@ -35,11 +35,20 @@ final class LibraryScanner: ObservableObject {
         needsFolderPick = false
         defer { busy = false }
 
+        // Sandboxed, so the library folder is whatever the user granted us —
+        // remembered from last time unless they're pointing us somewhere new.
+        let grant = booksDBOverride == nil ? LibraryBookmark.resolve() : nil
+        defer { grant?.release() }
+
         var found: [Book] = []
         do {
-            if let db = booksDBOverride ?? Self.booksDB {
+            if let db = booksDBOverride ?? grant.flatMap({ Self.sqliteFile(in: $0.url) }) {
                 status = "Reading Apple Books…"
                 found += try read(db, query: Self.appleBooksQuery, source: "books")
+            } else {
+                status = "Choose your Apple Books folder to get started."
+                needsFolderPick = true
+                return
             }
             if let db = Self.kindleDB {
                 status = "Reading Kindle…"
@@ -63,6 +72,31 @@ final class LibraryScanner: ObservableObject {
 
         books = found
         await fillPageCounts()
+        publishToCloud()
+    }
+
+    /// Hand the result to the phone. This is the whole point of the Mac app —
+    /// exporting a file by hand is the fallback, not the flow.
+    func publishToCloud() {
+        guard !books.isEmpty else { return }
+        guard CloudLibrary.isAvailable else {
+            status += " iCloud Drive is off, so use Save books.json… instead."
+            return
+        }
+        do {
+            try CloudLibrary.publish(books)
+            status += " Synced to your iPhone via iCloud."
+        } catch {
+            status += " iCloud sync failed: \(error.localizedDescription)"
+        }
+    }
+
+    /// The BKLibrary folder holds one `.sqlite`; accept either the folder or the
+    /// file itself, since people pick both.
+    static func sqliteFile(in url: URL) -> URL? {
+        if url.pathExtension == "sqlite" { return url }
+        return (try? FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil))?
+            .first { $0.pathExtension == "sqlite" }
     }
 
     /// Everything the shelf needs. Type 1 is an ebook; type 5 rows are series
@@ -141,8 +175,14 @@ final class LibraryScanner: ObservableObject {
                 return await group.reduce(into: [(Int, Int)]()) { $0.append($1) }
             }
             for (index, pages) in results {
-                cache[books[index].id] = pages
-                if pages > 0 { books[index].pages = pages; books[index].pagesEstimated = false }
+                // Only remember hits. A zero here usually means a timeout or a
+                // rate-limit, and caching that would make a transient failure
+                // permanent — which is how a 549-hit library became 140.
+                if pages > 0 {
+                    cache[books[index].id] = pages
+                    books[index].pages = pages
+                    books[index].pagesEstimated = false
+                }
             }
             done += chunk.count
             status = "Looking up page counts… \(done)/\(missing.count)"
