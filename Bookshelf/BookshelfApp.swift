@@ -38,7 +38,9 @@ struct ContentView: View {
                         .multilineTextAlignment(.leading)
                 }
 
-                Text("Run WoodWork Scanner on your Mac, then AirDrop `books.json` here.")
+                Text(Library.hasOwnLibrary
+                     ? "Your library syncs from the Mac scanner over iCloud."
+                     : "Showing a public domain shelf. To see your own books, run the WoodWork scanner on your Mac — it syncs here over iCloud.")
                     .font(.footnote)
                     .foregroundStyle(.tertiary)
                     .multilineTextAlignment(.leading)
@@ -243,7 +245,7 @@ struct ContentView: View {
 
     private var footerRow: some View {
         HStack {
-            Button("Import books.json…") { importing = true }
+            Button("Import a Library File…") { importing = true }
                 .buttonStyle(.borderedProminent)
                 .tint(Color(red: 0.45, green: 0.29, blue: 0.18))
 
