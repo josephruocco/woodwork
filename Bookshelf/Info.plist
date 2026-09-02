@@ -9,6 +9,10 @@
 	     the bookshelf:// URL scheme. -->
 	<key>CFBundleIconName</key>
 	<string>AppIcon</string>
+	<!-- Only standard HTTPS, which is exempt. Declaring it here means App Store
+	     Connect stops asking the encryption question on every upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
