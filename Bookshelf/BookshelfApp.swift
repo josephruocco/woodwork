@@ -11,6 +11,7 @@ struct BookshelfApp: App {
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @StateObject private var calibreDiscovery = CalibreDiscovery()
     @State private var books = Library.load()
     @State private var theme = ShelfSettings.loadTheme()
     @State private var widgetShelves = WidgetShelfRegistry.activeShelves()
@@ -20,9 +21,11 @@ struct ContentView: View {
     @State private var message: String?
     @State private var showingCalibre = false
     @State private var calibrePassword = ""
+    @State private var calibreLibraries: [CalibreLibrary] = []
     @State private var syncingCalibre = false
     @AppStorage("calibreServerAddress") private var calibreServerAddress = ""
     @AppStorage("calibreServerUsername") private var calibreServerUsername = ""
+    @AppStorage("calibreLibraryID") private var calibreLibraryID = ""
     @AppStorage("librarySource") private var librarySource = ""
 
     var body: some View {
@@ -302,6 +305,32 @@ struct ContentView: View {
     private var calibreConnectionSheet: some View {
         NavigationStack {
             Form {
+                if calibreDiscovery.isSearching || !calibreDiscovery.servers.isEmpty {
+                    Section("Nearby Calibre Servers") {
+                        if calibreDiscovery.servers.isEmpty {
+                            HStack {
+                                ProgressView().padding(.trailing, 6)
+                                Text("Looking on your Wi-Fi network…")
+                                    .foregroundStyle(.secondary)
+                            }
+                        } else {
+                            ForEach(calibreDiscovery.servers) { server in
+                                Button {
+                                    calibreServerAddress = server.address
+                                    Task { await testCalibreConnection() }
+                                } label: {
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(server.name).foregroundStyle(.primary)
+                                        Text(server.address)
+                                            .font(.caption)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
                 Section("Content Server") {
                     TextField("http://192.168.1.2:8080", text: $calibreServerAddress)
                         .textInputAutocapitalization(.never)
@@ -313,7 +342,22 @@ struct ContentView: View {
                     SecureField("Password (optional)", text: $calibrePassword)
                 }
 
+                if !calibreLibraries.isEmpty {
+                    Section("Library") {
+                        Picker("Library", selection: $calibreLibraryID) {
+                            ForEach(calibreLibraries) { library in
+                                Text(library.name).tag(library.id)
+                            }
+                        }
+                    }
+                }
+
                 Section {
+                    Button("Test Connection") {
+                        Task { await testCalibreConnection() }
+                    }
+                    .disabled(syncingCalibre || calibreServerAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
                     Button {
                         Task { await syncFromCalibre(password: calibrePassword) }
                     } label: {
@@ -343,6 +387,11 @@ struct ContentView: View {
             }
             .navigationTitle("Connect to Calibre")
             .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                calibrePassword = CalibreCredentials.loadPassword()
+                calibreDiscovery.start()
+            }
+            .onDisappear { calibreDiscovery.stop() }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { showingCalibre = false }
@@ -358,8 +407,8 @@ struct ContentView: View {
     }
 
     private func syncLibrary() async {
-        if librarySource == "calibre", !calibreServerAddress.isEmpty, calibreServerUsername.isEmpty {
-            await syncFromCalibre(password: "", quietly: true)
+        if librarySource == "calibre", !calibreServerAddress.isEmpty {
+            await syncFromCalibre(password: CalibreCredentials.loadPassword(), quietly: true)
         } else if librarySource != "calibre" {
             await syncFromCloud()
         }
@@ -376,8 +425,9 @@ struct ContentView: View {
                 username: calibreServerUsername,
                 password: password
             )
-            let incoming = try await client.fetchBooks()
+            let incoming = try await client.fetchBooks(libraryID: calibreLibraryID)
             try Library.save(incoming)
+            CalibreCredentials.savePassword(password)
             librarySource = "calibre"
             ShelfSettings.showDemoBooks = false
             showDemo = false
@@ -386,6 +436,30 @@ struct ContentView: View {
             message = "Synced \(incoming.count) books from Calibre."
         } catch {
             if !quietly { message = "Calibre sync failed: \(error.localizedDescription)" }
+        }
+    }
+
+    private func testCalibreConnection() async {
+        guard !syncingCalibre else { return }
+        syncingCalibre = true
+        defer { syncingCalibre = false }
+
+        do {
+            let client = try CalibreServerClient(
+                address: calibreServerAddress,
+                username: calibreServerUsername,
+                password: calibrePassword
+            )
+            let libraries = try await client.fetchLibraries()
+            calibreLibraries = libraries
+            if !libraries.contains(where: { $0.id == calibreLibraryID }) {
+                calibreLibraryID = libraries[0].id
+            }
+            message = libraries.count == 1
+                ? "Connected to Calibre."
+                : "Connected. Choose one of \(libraries.count) libraries."
+        } catch {
+            message = "Connection failed: \(error.localizedDescription)"
         }
     }
 

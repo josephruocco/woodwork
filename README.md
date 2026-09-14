@@ -56,13 +56,17 @@ Thickness: `pages × 0.075pt`, clamped 9–44. A 300-page paperback is 22pt; a
 ### Calibre Content Server
 
 1. In Calibre choose **Connect/share → Start Content Server**.
-2. In the iPhone app open **Calibre Content Server**, enter the address Calibre
-   shows (for example `http://192.168.1.2:8080`), then tap **Connect and Sync**.
-3. Keep the iPhone and the computer running Calibre on the same network.
+2. In the iPhone app open **Calibre Content Server** and select the server found
+   on your network. If discovery is unavailable, enter the address Calibre shows
+   (for example `http://192.168.1.2:8080`).
+3. Tap **Test Connection**, select a library if the server exposes more than one,
+   then tap **Connect and Sync**.
+4. Keep the iPhone and the computer running Calibre on the same network.
 
 The app imports titles, authors and Calibre's page metadata into the same shared
 library used by the widget. Tapping a Calibre title opens its page on the Content
-Server. Optional HTTP Basic Authentication is supported; passwords are not saved.
+Server. Optional HTTP Basic Authentication is supported; passwords are stored in
+the iOS Keychain and never placed in the shared widget data.
 
 ### Mac scanner or JSON file
 

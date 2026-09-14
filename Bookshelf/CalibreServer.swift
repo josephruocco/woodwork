@@ -1,4 +1,6 @@
 import Foundation
+import Combine
+import Security
 
 enum CalibreServerError: LocalizedError {
     case invalidURL
@@ -39,13 +41,33 @@ struct CalibreServerClient {
         self.password = password
     }
 
-    func fetchBooks() async throws -> [Book] {
-        let libraryInfo = try await json(path: "/ajax/library-info")
-        guard let info = libraryInfo as? [String: Any],
-              let libraryID = info["default_library"] as? String,
-              !libraryID.isEmpty else {
+    func fetchLibraries() async throws -> [CalibreLibrary] {
+        let raw = try await json(path: "/ajax/library-info")
+        guard let info = raw as? [String: Any] else {
             throw CalibreServerError.invalidResponse
         }
+
+        let defaultID = (info["default_library"] as? String)
+            ?? (info["default_library_id"] as? String)
+        let map = info["library_map"] as? [String: Any] ?? [:]
+        var libraries = map.map { id, rawName in
+            CalibreLibrary(id: id, name: (rawName as? String) ?? id)
+        }
+        if libraries.isEmpty, let defaultID, !defaultID.isEmpty {
+            libraries = [CalibreLibrary(id: defaultID, name: defaultID)]
+        }
+        guard !libraries.isEmpty else { throw CalibreServerError.invalidResponse }
+        return libraries.sorted {
+            if $0.id == defaultID { return true }
+            if $1.id == defaultID { return false }
+            return $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+        }
+    }
+
+    func fetchBooks(libraryID requestedLibraryID: String? = nil) async throws -> [Book] {
+        let libraries = try await fetchLibraries()
+        let libraryID = libraries.first(where: { $0.id == requestedLibraryID })?.id
+            ?? libraries[0].id
 
         let encodedLibrary = libraryID.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? libraryID
         let searchJSON = try await json(path: "/ajax/search/\(encodedLibrary)")
@@ -119,7 +141,8 @@ struct CalibreServerClient {
     }
 
     private func json(path: String) async throws -> Any {
-        try await json(url: baseURL.appending(path: path))
+        let relativePath = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return try await json(url: baseURL.appending(path: relativePath))
     }
 
     private func json(url: URL) async throws -> Any {
@@ -142,6 +165,123 @@ struct CalibreServerClient {
         } catch {
             throw CalibreServerError.invalidResponse
         }
+    }
+}
+
+struct CalibreLibrary: Identifiable, Hashable {
+    let id: String
+    let name: String
+}
+
+struct CalibreDiscoveredServer: Identifiable, Hashable {
+    let name: String
+    let address: String
+
+    var id: String { address }
+}
+
+@MainActor
+final class CalibreDiscovery: NSObject, ObservableObject, NetServiceBrowserDelegate, NetServiceDelegate {
+    @Published private(set) var servers: [CalibreDiscoveredServer] = []
+    @Published private(set) var isSearching = false
+
+    private let browser = NetServiceBrowser()
+    private var resolving: [NetService] = []
+
+    override init() {
+        super.init()
+        browser.delegate = self
+    }
+
+    func start() {
+        guard !isSearching else { return }
+        servers = []
+        resolving = []
+        isSearching = true
+        browser.searchForServices(ofType: "_calibre._tcp.", inDomain: "local.")
+    }
+
+    func stop() {
+        browser.stop()
+        resolving.forEach { $0.stop() }
+        resolving = []
+        isSearching = false
+    }
+
+    nonisolated func netServiceBrowser(
+        _ browser: NetServiceBrowser,
+        didFind service: NetService,
+        moreComing: Bool
+    ) {
+        Task { @MainActor in
+            service.delegate = self
+            resolving.append(service)
+            service.resolve(withTimeout: 8)
+        }
+    }
+
+    nonisolated func netServiceDidResolveAddress(_ sender: NetService) {
+        Task { @MainActor in
+            guard let rawHost = sender.hostName, sender.port > 0 else { return }
+            let host = rawHost.hasSuffix(".") ? String(rawHost.dropLast()) : rawHost
+            var serverPath = ""
+            if let record = sender.txtRecordData(),
+               let pathData = NetService.dictionary(fromTXTRecord: record)["path"],
+               var path = String(data: pathData, encoding: .utf8) {
+                if path.hasSuffix("/opds") { path.removeLast(5) }
+                if path != "/" { serverPath = path }
+            }
+            let address = "http://\(host):\(sender.port)\(serverPath)"
+            let found = CalibreDiscoveredServer(name: sender.name, address: address)
+            if !servers.contains(where: { $0.address == address }) {
+                servers.append(found)
+                servers.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+            }
+        }
+    }
+
+    nonisolated func netServiceBrowserDidStopSearch(_ browser: NetServiceBrowser) {
+        Task { @MainActor in isSearching = false }
+    }
+
+    nonisolated func netServiceBrowser(
+        _ browser: NetServiceBrowser,
+        didNotSearch errorDict: [String: NSNumber]
+    ) {
+        Task { @MainActor in isSearching = false }
+    }
+}
+
+enum CalibreCredentials {
+    private static let service = "app.getwoodwork.calibre"
+    private static let account = "content-server-password"
+
+    static func loadPassword() -> String {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        var result: CFTypeRef?
+        guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data else { return "" }
+        return String(data: data, encoding: .utf8) ?? ""
+    }
+
+    static func savePassword(_ password: String) {
+        let identity: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: account
+        ]
+        SecItemDelete(identity as CFDictionary)
+        guard !password.isEmpty else { return }
+        var item = identity
+        item[kSecValueData as String] = Data(password.utf8)
+        item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        SecItemAdd(item as CFDictionary, nil)
     }
 }
 
