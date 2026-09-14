@@ -23,6 +23,11 @@ page-count cache for no visible gain.
 
 ## Where the data comes from
 
+WoodWork supports three import paths. The iPhone app can sync directly from a
+running Calibre Content Server, receive the Mac scanner's library over iCloud,
+or import a `books.json` file manually. These are alternatives; adding Calibre
+does not remove either existing option.
+
 Neither Apple Books nor Kindle has a public library API, so the Mac app reads the
 local databases directly — Apple Books from `BKLibrary-*.sqlite`
 (`ZBKLIBRARYASSET`, content type 1; type 5 rows are series containers, not
@@ -47,6 +52,19 @@ Thickness: `pages × 0.075pt`, clamped 9–44. A 300-page paperback is 22pt; a
 1500-page manual is capped so it can't eat the shelf.
 
 ## Setup
+
+### Calibre Content Server
+
+1. In Calibre choose **Connect/share → Start Content Server**.
+2. In the iPhone app open **Calibre Content Server**, enter the address Calibre
+   shows (for example `http://192.168.1.2:8080`), then tap **Connect and Sync**.
+3. Keep the iPhone and the computer running Calibre on the same network.
+
+The app imports titles, authors and Calibre's page metadata into the same shared
+library used by the widget. Tapping a Calibre title opens its page on the Content
+Server. Optional HTTP Basic Authentication is supported; passwords are not saved.
+
+### Mac scanner or JSON file
 
 1. Build and run `BookshelfScanner` on your Mac → **Scan Library** → **Save
    books.json…**. First run takes a few minutes for the page-count lookups.

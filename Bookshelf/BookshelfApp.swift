@@ -18,6 +18,12 @@ struct ContentView: View {
     @State private var showDemo = ShelfSettings.showDemoBooks
     @State private var importing = false
     @State private var message: String?
+    @State private var showingCalibre = false
+    @State private var calibrePassword = ""
+    @State private var syncingCalibre = false
+    @AppStorage("calibreServerAddress") private var calibreServerAddress = ""
+    @AppStorage("calibreServerUsername") private var calibreServerUsername = ""
+    @AppStorage("librarySource") private var librarySource = ""
 
     var body: some View {
         ScrollView {
@@ -29,6 +35,7 @@ struct ContentView: View {
                 themeCard
                 demoCard
                 shelfNowCard
+                calibreCard
                 footerRow
 
                 if let message {
@@ -39,8 +46,8 @@ struct ContentView: View {
                 }
 
                 Text(Library.hasOwnLibrary
-                     ? "Your library syncs from the Mac scanner over iCloud."
-                     : "Showing a public domain shelf. To see your own books, run the WoodWork scanner on your Mac — it syncs here over iCloud.")
+                     ? libraryStatus
+                     : "Showing a public domain shelf. Connect to Calibre or import a library file to see your own books.")
                     .font(.footnote)
                     .foregroundStyle(.tertiary)
                     .multilineTextAlignment(.leading)
@@ -51,12 +58,12 @@ struct ContentView: View {
         .background(appBackground)
         .onAppear {
             refreshWidgetShelves()
-            Task { await syncFromCloud() }
+            Task { await syncLibrary() }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 refreshWidgetShelves()
-                Task { await syncFromCloud() }
+                Task { await syncLibrary() }
             }
         }
         .onChange(of: theme) { _, newTheme in
@@ -71,6 +78,9 @@ struct ContentView: View {
         .onOpenURL(perform: openWidgetShelf)
         .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
             handle(result)
+        }
+        .sheet(isPresented: $showingCalibre) {
+            calibreConnectionSheet
         }
     }
 
@@ -259,6 +269,126 @@ struct ContentView: View {
         .background(panelBackground)
     }
 
+    private var calibreCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "externaldrive.connected.to.line.below")
+                    .font(.title3)
+                    .foregroundStyle(Color(red: 0.45, green: 0.29, blue: 0.18))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Calibre Content Server")
+                        .font(.headline)
+                    Text(calibreServerAddress.isEmpty
+                         ? "Sync your Calibre library over Wi-Fi."
+                         : "Connected to \(calibreServerAddress)")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+
+                Spacer(minLength: 8)
+
+                Button(calibreServerAddress.isEmpty ? "Connect" : "Sync") {
+                    showingCalibre = true
+                }
+                .buttonStyle(.bordered)
+            }
+        }
+        .padding(18)
+        .background(panelBackground)
+    }
+
+    private var calibreConnectionSheet: some View {
+        NavigationStack {
+            Form {
+                Section("Content Server") {
+                    TextField("http://192.168.1.2:8080", text: $calibreServerAddress)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.URL)
+                        .autocorrectionDisabled()
+                    TextField("Username (optional)", text: $calibreServerUsername)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    SecureField("Password (optional)", text: $calibrePassword)
+                }
+
+                Section {
+                    Button {
+                        Task { await syncFromCalibre(password: calibrePassword) }
+                    } label: {
+                        HStack {
+                            if syncingCalibre { ProgressView().padding(.trailing, 4) }
+                            Text(syncingCalibre ? "Syncing…" : "Connect and Sync")
+                        }
+                    }
+                    .disabled(syncingCalibre || calibreServerAddress.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                } footer: {
+                    Text("In Calibre, choose Connect/share → Start Content Server. Your iPhone and computer must be on the same network unless you securely expose the server remotely.")
+                }
+
+                if librarySource == "calibre" {
+                    Section {
+                        Button("Use Mac Scanner Sync Instead") {
+                            librarySource = ""
+                            showingCalibre = false
+                            Task { await syncFromCloud() }
+                        }
+                    }
+                }
+
+                if let message {
+                    Section("Status") { Text(message) }
+                }
+            }
+            .navigationTitle("Connect to Calibre")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { showingCalibre = false }
+                }
+            }
+        }
+    }
+
+    private var libraryStatus: String {
+        librarySource == "calibre"
+            ? "Your library syncs directly from the Calibre Content Server."
+            : "Your library is stored on this device and shared with the widget."
+    }
+
+    private func syncLibrary() async {
+        if librarySource == "calibre", !calibreServerAddress.isEmpty, calibreServerUsername.isEmpty {
+            await syncFromCalibre(password: "", quietly: true)
+        } else if librarySource != "calibre" {
+            await syncFromCloud()
+        }
+    }
+
+    private func syncFromCalibre(password: String, quietly: Bool = false) async {
+        guard !syncingCalibre else { return }
+        syncingCalibre = true
+        defer { syncingCalibre = false }
+
+        do {
+            let client = try CalibreServerClient(
+                address: calibreServerAddress,
+                username: calibreServerUsername,
+                password: password
+            )
+            let incoming = try await client.fetchBooks()
+            try Library.save(incoming)
+            librarySource = "calibre"
+            ShelfSettings.showDemoBooks = false
+            showDemo = false
+            books = incoming
+            WidgetCenter.shared.reloadAllTimelines()
+            message = "Synced \(incoming.count) books from Calibre."
+        } catch {
+            if !quietly { message = "Calibre sync failed: \(error.localizedDescription)" }
+        }
+    }
+
     /// Pick up whatever the Mac scanner last published. Quiet on failure —
     /// there's usually just nothing there yet, and the bundled library still
     /// shows a shelf.
@@ -267,6 +397,7 @@ struct ContentView: View {
         guard incoming != books else { return }
         do {
             try Library.save(incoming)
+            librarySource = "icloud"
             ShelfSettings.showDemoBooks = false
             showDemo = false
             books = incoming
@@ -290,6 +421,7 @@ struct ContentView: View {
             }
 
             try Library.save(imported)
+            librarySource = "file"
             ShelfSettings.showDemoBooks = false
             showDemo = false
             books = imported

@@ -46,6 +46,7 @@ extension Book {
         guard let assetID, !assetID.isEmpty else { return nil }
         switch source {
         case "kindle": return URL(string: "kindle://book?action=open&asin=\(assetID)")
+        case "calibre": return URL(string: assetID)
         default: return URL(string: "ibooks://assetid/\(assetID)")
         }
     }
