@@ -14,3 +14,5 @@ Resources/.pagecache.json
 # Personal library export — supply your own (see README)
 Resources/books.json
 .build-release/
+__pycache__/
+*.py[cod]
