@@ -15,6 +15,7 @@
 		BE5F0000000000000000A001 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F001 /* Book.swift */; };
 		BE5F0000000000000000A002 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F002 /* ShelfView.swift */; };
 		BE5F0000000000000000A003 /* BookshelfApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F003 /* BookshelfApp.swift */; };
+		BE5F0000000000000000A022 /* CalibreServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F015 /* CalibreServer.swift */; };
 		BE5F0000000000000000A004 /* Book.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F001 /* Book.swift */; };
 		BE5F0000000000000000A005 /* ShelfView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F002 /* ShelfView.swift */; };
 		BE5F0000000000000000A006 /* BookshelfWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F004 /* BookshelfWidget.swift */; };
@@ -62,6 +63,7 @@
 		BE5F0000000000000000F013 /* CloudLibrary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudLibrary.swift; sourceTree = "<group>"; };
 		BE5F0000000000000000F002 /* ShelfView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShelfView.swift; sourceTree = "<group>"; };
 		BE5F0000000000000000F003 /* BookshelfApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfApp.swift; sourceTree = "<group>"; };
+		BE5F0000000000000000F015 /* CalibreServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibreServer.swift; sourceTree = "<group>"; };
 		BE5F0000000000000000F004 /* BookshelfWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookshelfWidget.swift; sourceTree = "<group>"; };
 		BE5F0000000000000000F005 /* ScannerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScannerApp.swift; sourceTree = "<group>"; };
 		BE5F0000000000000000F006 /* LibraryScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LibraryScanner.swift; sourceTree = "<group>"; };
@@ -126,6 +128,7 @@
 			children = (
 				BE5F0000000000000000F012 /* Assets.xcassets */,
 				BE5F0000000000000000F003 /* BookshelfApp.swift */,
+				BE5F0000000000000000F015 /* CalibreServer.swift */,
 				BE5F0000000000000000F009 /* Bookshelf.entitlements */,
 			);
 			path = Bookshelf;
@@ -305,6 +308,7 @@
 				BE5F0000000000000000A001 /* Book.swift in Sources */,
 				BE5F0000000000000000A002 /* ShelfView.swift in Sources */,
 				BE5F0000000000000000A003 /* BookshelfApp.swift in Sources */,
+				BE5F0000000000000000A022 /* CalibreServer.swift in Sources */,
 				BE5F0000000000000000A017 /* CloudLibrary.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
