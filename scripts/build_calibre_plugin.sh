@@ -9,6 +9,5 @@ output_file="$output_dir/WoodWorkShelf.zip"
 mkdir -p "$output_dir"
 rm -f "$output_file"
 cd "$source_dir"
-zip -q -r "$output_file" .
+zip -q -r "$output_file" . -x '__pycache__/*' '*.pyc'
 echo "$output_file"
-
