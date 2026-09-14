@@ -113,3 +113,12 @@ swiftc -o /tmp/check Shared/Book.swift Shared/ShelfView.swift Tests/main.swift &
 Covers spine thickness, row packing (leaning books and flat piles measured by
 real footprint, not spine width), no repeats within a row, and render stability.
 The newer `.featured` item and layout options aren't covered yet.
+
+## Calibre release material
+
+- [`Launch/CalibreAdoption.md`](Launch/CalibreAdoption.md) — positioning,
+  distribution sequence, trust rules, and adoption targets.
+- [`Launch/MobileReadBetaPost.md`](Launch/MobileReadBetaPost.md) — prepared beta
+  announcement for the Calibre Plugins forum.
+- [`Launch/CalibreTestMatrix.md`](Launch/CalibreTestMatrix.md) — compatibility
+  gates for plugin-index submission and iPhone Content Server support.
