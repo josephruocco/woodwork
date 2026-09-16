@@ -198,6 +198,17 @@ struct ContentView: View {
             }
             .padding(.horizontal, 4)
 
+            if visibleWidgetShelves.count > 1 {
+                Button {
+                    keepOnlySelectedShelf()
+                } label: {
+                    Label("Keep only this shelf", systemImage: "checkmark.circle")
+                        .font(.footnote.weight(.semibold))
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.secondary)
+            }
+
             HStack(spacing: 10) {
                 Button {
                     reshuffleSelectedShelf()
@@ -619,7 +630,9 @@ struct ContentView: View {
             })).sorted()
             let recentlyRendered = Set(WidgetShelfRegistry.activeShelves(within: 2 * 60))
             let reconciled = configured.filter(recentlyRendered.contains)
-            let active = reconciled.isEmpty ? configured : reconciled
+            let rendered = reconciled.isEmpty ? configured : reconciled
+            let suppressed = WidgetShelfRegistry.suppressedShelves
+            let active = rendered.filter { !suppressed.contains($0) }
 
             Task { @MainActor in
                 widgetShelves = active
@@ -637,8 +650,15 @@ struct ContentView: View {
               let shelf = Int(component),
               WidgetShelfRegistry.shelfRange.contains(shelf) else { return }
         WidgetShelfRegistry.register(shelf: shelf)
+        WidgetShelfRegistry.restore(shelf: shelf)
         refreshWidgetShelves()
         selectedShelf = shelf
+    }
+
+    private func keepOnlySelectedShelf() {
+        WidgetShelfRegistry.keepOnly(shelf: selectedShelf, among: visibleWidgetShelves)
+        widgetShelves = [selectedShelf]
+        message = "Showing only Widget Shelf \(selectedShelf). Tap another WoodWork widget to restore its page."
     }
 
     private var appBackground: some View {
