@@ -66,6 +66,9 @@ struct ContentView: View {
             .padding(.vertical, 18)
         }
         .background(appBackground)
+        .refreshable {
+            await refreshEverything()
+        }
         .onAppear {
             refreshWidgetShelves()
             Task { await syncLibrary() }
@@ -469,6 +472,17 @@ struct ContentView: View {
         }
     }
 
+    private func refreshEverything() async {
+        await syncLibrary()
+        refreshWidgetShelves()
+        // Keep the refresh indicator visible until WidgetKit's asynchronous
+        // configuration query has completed its reconciliation pass.
+        try? await Task.sleep(for: .seconds(1))
+        message = calibreServerReachable == false
+            ? "Library refreshed. Calibre server not found."
+            : "Library and widget refreshed."
+    }
+
     private func syncFromCalibre(password: String, quietly: Bool = false) async {
         guard !syncingCalibre else { return }
         syncingCalibre = true
@@ -632,19 +646,7 @@ struct ContentView: View {
                 guard info.kind == "BookshelfWidget" else { return nil }
                 return info.widgetConfigurationIntent(of: SelectShelfIntent.self)?.shelf.rawValue
             })).sorted()
-            // iOS sometimes reports a deleted configuration alongside the
-            // real one. The real widget is the one whose provider most
-            // recently rendered on the Home Screen.
-            let active: [Int]
-            if configured.count <= 1 {
-                active = configured
-            } else if let latest = configured.max(by: {
-                WidgetShelfRegistry.lastSeen(shelf: $0) < WidgetShelfRegistry.lastSeen(shelf: $1)
-            }) {
-                active = [latest]
-            } else {
-                active = []
-            }
+            let active = configured
 
             Task { @MainActor in
                 widgetShelves = active
