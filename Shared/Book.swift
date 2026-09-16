@@ -186,10 +186,17 @@ enum Library {
     /// developer account, where App Groups aren't available.
     static func load() -> [Book] {
         if ShelfSettings.showDemoBooks, let demo = demoLibrary() { return demo }
-        if let url = sharedFile, let books = decode(url), !books.isEmpty { return books }
+        let stored = storedBooks()
+        if !stored.isEmpty { return stored }
         if let url = Bundle.main.url(forResource: "books", withExtension: "json"),
            let books = decode(url), !books.isEmpty { return books }
         return demoLibrary() ?? .samples
+    }
+
+    /// The user's saved library without demo or bundled fallback books.
+    static func storedBooks() -> [Book] {
+        guard let url = sharedFile, let books = decode(url), !books.isEmpty else { return [] }
+        return books
     }
 
     /// A hundred-odd public domain titles, shipped in the bundle. It's what a
@@ -210,6 +217,61 @@ enum Library {
     static func save(_ books: [Book]) throws {
         guard let url = sharedFile else { throw CocoaError(.fileNoSuchFile) }
         try JSONEncoder().encode(books).write(to: url, options: .atomic)
+    }
+
+    /// Refreshes only the sources represented by an import and preserves books
+    /// from every other source. Matching title/author pairs collapse to one
+    /// entry, preferring links that open Apple Books or Kindle directly.
+    static func merged(
+        _ existing: [Book],
+        with incoming: [Book],
+        replacingSources: Set<String?>
+    ) -> [Book] {
+        let retained = existing.filter { !replacingSources.contains($0.source) }
+        var result: [Book] = []
+        var positions: [String: Int] = [:]
+
+        for book in retained + incoming {
+            let key = identityKey(for: book)
+            if let index = positions[key] {
+                result[index] = preferred(result[index], book)
+            } else {
+                positions[key] = result.count
+                result.append(book)
+            }
+        }
+        return result
+    }
+
+    private static func identityKey(for book: Book) -> String {
+        func normalized(_ value: String) -> String {
+            value.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: .current)
+                .components(separatedBy: CharacterSet.alphanumerics.inverted)
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+        }
+        return "\(normalized(book.title))|\(normalized(book.author))"
+    }
+
+    private static func preferred(_ first: Book, _ second: Book) -> Book {
+        func priority(_ book: Book) -> Int {
+            switch book.source {
+            case "books": 4
+            case "kindle": 3
+            case "calibre": 2
+            default: 1
+            }
+        }
+
+        let useSecond = priority(second) > priority(first)
+        var winner = useSecond ? second : first
+        let other = useSecond ? first : second
+        if (winner.pagesEstimated || winner.pages <= 0),
+           !other.pagesEstimated, other.pages > 0 {
+            winner.pages = other.pages
+            winner.pagesEstimated = false
+        }
+        return winner
     }
 
     private static func decode(_ url: URL) -> [Book]? {

@@ -26,7 +26,6 @@ struct ContentView: View {
     @AppStorage("calibreServerAddress") private var calibreServerAddress = ""
     @AppStorage("calibreServerUsername") private var calibreServerUsername = ""
     @AppStorage("calibreLibraryID") private var calibreLibraryID = ""
-    @AppStorage("librarySource") private var librarySource = ""
 
     var body: some View {
         ScrollView {
@@ -258,7 +257,7 @@ struct ContentView: View {
 
     private var footerRow: some View {
         HStack {
-            Button("Import a Library File…") { importing = true }
+            Button("Import") { importing = true }
                 .buttonStyle(.borderedProminent)
                 .tint(Color(red: 0.45, green: 0.29, blue: 0.18))
 
@@ -371,13 +370,18 @@ struct ContentView: View {
                     Text("In Calibre, choose Connect/share → Start Content Server. Your iPhone and computer must be on the same network unless you securely expose the server remotely.")
                 }
 
-                if librarySource == "calibre" {
+                if !calibreServerAddress.isEmpty {
                     Section {
-                        Button("Use Mac Scanner Sync Instead") {
-                            librarySource = ""
+                        Button("Stop Calibre Refresh") {
+                            calibreServerAddress = ""
+                            calibreServerUsername = ""
+                            calibreLibraryID = ""
+                            calibrePassword = ""
+                            CalibreCredentials.savePassword("")
                             showingCalibre = false
-                            Task { await syncFromCloud() }
                         }
+                    } footer: {
+                        Text("Books already imported from Calibre stay on your shelf.")
                     }
                 }
 
@@ -401,16 +405,13 @@ struct ContentView: View {
     }
 
     private var libraryStatus: String {
-        librarySource == "calibre"
-            ? "Your library syncs directly from the Calibre Content Server."
-            : "Your library is stored on this device and shared with the widget."
+        "Your combined library is stored on this device and shared with the widget."
     }
 
     private func syncLibrary() async {
-        if librarySource == "calibre", !calibreServerAddress.isEmpty {
+        await syncFromCloud(quietly: true)
+        if !calibreServerAddress.isEmpty {
             await syncFromCalibre(password: CalibreCredentials.loadPassword(), quietly: true)
-        } else if librarySource != "calibre" {
-            await syncFromCloud()
         }
     }
 
@@ -426,14 +427,20 @@ struct ContentView: View {
                 password: password
             )
             let incoming = try await client.fetchBooks(libraryID: calibreLibraryID)
-            try Library.save(incoming)
+            let combined = Library.merged(
+                Library.storedBooks(),
+                with: incoming,
+                replacingSources: ["calibre"]
+            )
+            try Library.save(combined)
             CalibreCredentials.savePassword(password)
-            librarySource = "calibre"
             ShelfSettings.showDemoBooks = false
             showDemo = false
-            books = incoming
+            books = combined
             WidgetCenter.shared.reloadAllTimelines()
-            message = "Synced \(incoming.count) books from Calibre."
+            if !quietly {
+                message = "Synced \(incoming.count) books from Calibre. \(combined.count) books total."
+            }
         } catch {
             if !quietly { message = "Calibre sync failed: \(error.localizedDescription)" }
         }
@@ -466,19 +473,25 @@ struct ContentView: View {
     /// Pick up whatever the Mac scanner last published. Quiet on failure —
     /// there's usually just nothing there yet, and the bundled library still
     /// shows a shelf.
-    private func syncFromCloud() async {
+    private func syncFromCloud(quietly: Bool = false) async {
         guard let incoming = await CloudLibrary.fetch() else { return }
-        guard incoming != books else { return }
+        let combined = Library.merged(
+            Library.storedBooks(),
+            with: incoming,
+            replacingSources: ["books", "kindle"]
+        )
+        guard combined != Library.storedBooks() else { return }
         do {
-            try Library.save(incoming)
-            librarySource = "icloud"
+            try Library.save(combined)
             ShelfSettings.showDemoBooks = false
             showDemo = false
-            books = incoming
+            books = combined
             WidgetCenter.shared.reloadAllTimelines()
-            message = "Synced \(incoming.count) books from your Mac."
+            if !quietly {
+                message = "Synced \(incoming.count) books from your Mac. \(combined.count) books total."
+            }
         } catch {
-            message = "Couldn't save the synced library: \(error.localizedDescription)"
+            if !quietly { message = "Couldn't save the synced library: \(error.localizedDescription)" }
         }
     }
 
@@ -494,13 +507,17 @@ struct ContentView: View {
                 return
             }
 
-            try Library.save(imported)
-            librarySource = "file"
+            let combined = Library.merged(
+                Library.storedBooks(),
+                with: imported,
+                replacingSources: Set(imported.map(\.source))
+            )
+            try Library.save(combined)
             ShelfSettings.showDemoBooks = false
             showDemo = false
-            books = imported
+            books = combined
             WidgetCenter.shared.reloadAllTimelines()
-            message = "Imported \(imported.count) books. The widget will refresh shortly."
+            message = "Imported \(imported.count) books. \(combined.count) books total."
         } catch {
             message = "Import failed: \(error.localizedDescription)"
         }

@@ -24,7 +24,7 @@ WoodWork turns your ebook library into a living bookshelf on your iPhone Home Sc
 
 Each book appears as a physical spine, with thickness based on its page count. Your shelf reshuffles throughout the day, bringing forgotten books back into view.
 
-• Build a shelf from Calibre, Apple Books, Kindle, or a library file
+• Combine books from Calibre, Apple Books, Kindle, and library files on one shelf
 • Import and refresh directly from a Calibre Content Server over Wi-Fi
 • Add up to six widgets, each showing different books and layouts
 • Choose Classic, Dark Oak, White Built-In, or Artsy
@@ -32,7 +32,7 @@ Each book appears as a physical spine, with thickness based on its page count. Y
 • Tap a title to open it in its reading app
 • Import privately using WoodWork Scanner for Mac or a library file
 
-Calibre integration is a one-way library import: WoodWork reads your book metadata without changing your Calibre library. No WoodWork account, ads, analytics, or tracking. Your library stays yours.
+Imports merge into one shelf without changing the source libraries. Calibre integration is one-way: WoodWork reads your book metadata without changing your Calibre library. No WoodWork account, ads, analytics, or tracking. Your library stays yours.
 
 ## Keywords
 
@@ -61,7 +61,7 @@ Calibre integration imports book metadata into WoodWork and refreshes it when th
 
 ## Release configuration
 
-- Build: 4
+- Build: 5
 - Sign-in required: No
 - Release: Manually after App Review approval
 - Export compliance: App uses no non-exempt encryption
