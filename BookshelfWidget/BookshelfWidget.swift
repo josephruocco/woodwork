@@ -67,7 +67,13 @@ struct Provider: AppIntentTimelineProvider {
     private func entry(at date: Date, from library: [Book], shelf: Int) -> ShelfEntry {
         return ShelfEntry(
             date: date,
-            books: Book.onWidgetShelf(library, shelf: shelf, at: date, count: poolSize),
+            books: Book.onWidgetShelf(
+                library,
+                shelf: shelf,
+                at: date,
+                count: poolSize,
+                variation: WidgetShelfRegistry.variation(for: shelf)
+            ),
             theme: ShelfSettings.loadTheme(),
             shelf: shelf,
             layoutVariant: .forShelf(shelf)

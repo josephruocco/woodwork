@@ -11,6 +11,7 @@ struct BookshelfApp: App {
 
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
     @StateObject private var calibreDiscovery = CalibreDiscovery()
     @State private var books = Library.load()
     @State private var theme = ShelfSettings.loadTheme()
@@ -23,6 +24,12 @@ struct ContentView: View {
     @State private var calibrePassword = ""
     @State private var calibreLibraries: [CalibreLibrary] = []
     @State private var syncingCalibre = false
+    @State private var calibreServerReachable: Bool?
+    @State private var shelfVariations = Dictionary(
+        uniqueKeysWithValues: WidgetShelfRegistry.shelfRange.map {
+            ($0, WidgetShelfRegistry.variation(for: $0))
+        }
+    )
     @AppStorage("calibreServerAddress") private var calibreServerAddress = ""
     @AppStorage("calibreServerUsername") private var calibreServerUsername = ""
     @AppStorage("calibreLibraryID") private var calibreLibraryID = ""
@@ -91,7 +98,12 @@ struct ContentView: View {
     }
 
     private var selectedShelfBooks: [Book] {
-        Book.onWidgetShelf(books, shelf: selectedShelf, count: 60)
+        Book.onWidgetShelf(
+            books,
+            shelf: selectedShelf,
+            count: 60,
+            variation: shelfVariations[selectedShelf] ?? 0
+        )
     }
 
     private var featured: [Book] {
@@ -185,12 +197,36 @@ struct ContentView: View {
                 }
             }
             .padding(.horizontal, 4)
+
+            HStack(spacing: 10) {
+                Button {
+                    reshuffleSelectedShelf()
+                } label: {
+                    Label("Shuffle shelf", systemImage: "shuffle")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                Button {
+                    openRandomBook()
+                } label: {
+                    Label("Open a random book", systemImage: "book")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Color(red: 0.45, green: 0.29, blue: 0.18))
+            }
         }
     }
 
     private func shelfPreview(_ shelf: Int) -> some View {
         ShelfView(
-            books: Book.onWidgetShelf(books, shelf: shelf, count: 60),
+            books: Book.onWidgetShelf(
+                books,
+                shelf: shelf,
+                count: 60,
+                variation: shelfVariations[shelf] ?? 0
+            ),
             theme: theme,
             layoutVariant: .forShelf(shelf)
         )
@@ -276,22 +312,22 @@ struct ContentView: View {
             HStack(spacing: 12) {
                 Image(systemName: "externaldrive.connected.to.line.below")
                     .font(.title3)
-                    .foregroundStyle(Color(red: 0.45, green: 0.29, blue: 0.18))
+                    .foregroundStyle(calibreServerReachable == false
+                                     ? Color.red
+                                     : Color(red: 0.45, green: 0.29, blue: 0.18))
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Calibre Content Server")
                         .font(.headline)
-                    Text(calibreServerAddress.isEmpty
-                         ? "Sync your Calibre library over Wi-Fi."
-                         : "Connected to \(calibreServerAddress)")
+                    Text(calibreStatusText)
                         .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(calibreServerReachable == false ? .red : .secondary)
                         .lineLimit(2)
                 }
 
                 Spacer(minLength: 8)
 
-                Button(calibreServerAddress.isEmpty ? "Connect" : "Sync") {
+                Button(calibreServerAddress.isEmpty ? "Connect" : (calibreServerReachable == false ? "Retry" : "Sync")) {
                     showingCalibre = true
                 }
                 .buttonStyle(.bordered)
@@ -378,6 +414,7 @@ struct ContentView: View {
                             calibreLibraryID = ""
                             calibrePassword = ""
                             CalibreCredentials.savePassword("")
+                            calibreServerReachable = nil
                             showingCalibre = false
                         }
                     } footer: {
@@ -438,10 +475,12 @@ struct ContentView: View {
             showDemo = false
             books = combined
             WidgetCenter.shared.reloadAllTimelines()
+            calibreServerReachable = true
             if !quietly {
                 message = "Synced \(incoming.count) books from Calibre. \(combined.count) books total."
             }
         } catch {
+            calibreServerReachable = false
             if !quietly { message = "Calibre sync failed: \(error.localizedDescription)" }
         }
     }
@@ -465,9 +504,40 @@ struct ContentView: View {
             message = libraries.count == 1
                 ? "Connected to Calibre."
                 : "Connected. Choose one of \(libraries.count) libraries."
+            calibreServerReachable = true
         } catch {
+            calibreServerReachable = false
             message = "Connection failed: \(error.localizedDescription)"
         }
+    }
+
+    private var calibreStatusText: String {
+        guard !calibreServerAddress.isEmpty else {
+            return "Sync your Calibre library over Wi-Fi."
+        }
+        if syncingCalibre { return "Checking \(calibreServerAddress)…" }
+        switch calibreServerReachable {
+        case true:
+            return "Connected to \(calibreServerAddress)"
+        case false:
+            return "Server not found. Start the Calibre Content Server, then retry."
+        case nil:
+            return "Saved server: \(calibreServerAddress)"
+        }
+    }
+
+    private func reshuffleSelectedShelf() {
+        shelfVariations[selectedShelf] = WidgetShelfRegistry.reshuffle(shelf: selectedShelf)
+        WidgetCenter.shared.reloadTimelines(ofKind: "BookshelfWidget")
+    }
+
+    private func openRandomBook() {
+        let openable = Library.storedBooks().filter { $0.readerURL != nil }
+        guard let book = openable.randomElement(), let url = book.readerURL else {
+            message = "No imported books have a link that WoodWork can open yet."
+            return
+        }
+        openURL(url)
     }
 
     /// Pick up whatever the Mac scanner last published. Quiet on failure —

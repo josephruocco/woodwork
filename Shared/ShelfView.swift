@@ -93,8 +93,10 @@ struct ShelfView: View {
     }
 
     private func framedShelf(size: CGSize, metrics: FramedShelfMetrics) -> some View {
-        let projected = metrics.projectedCavities(in: size)
-        let cavities = size.height >= 250 ? projected : Array(projected.prefix(1))
+        let compact = size.height < 250
+        let fillsArtwork = theme == .walnut && size.width / max(1, size.height) < 1.25
+        let projected = metrics.projectedCavities(in: size, aspectFill: fillsArtwork)
+        let cavities = compact ? Array(projected.prefix(1)) : projected
 
         return ZStack(alignment: .topLeading) {
             ForEach(cavities.indices, id: \.self) { index in
@@ -103,7 +105,8 @@ struct ShelfView: View {
                     books: booksForFramedRow(index),
                     theme: theme,
                     row: index,
-                    layoutVariant: layoutVariant
+                    layoutVariant: layoutVariant,
+                    compact: compact
                 )
                 .frame(width: cavity.width, height: cavity.height, alignment: .bottomLeading)
                 .clipped()
@@ -301,11 +304,18 @@ private struct FramedShelfMetrics {
     let horizontalRange: ClosedRange<CGFloat>
     let cavities: [ShelfCavity]
 
-    func projectedCavities(in size: CGSize) -> [CGRect] {
-        // Shelf artwork is displayed aspect-fit. Project its measured
+    func projectedCavities(in size: CGSize, aspectFill: Bool = false) -> [CGRect] {
+        // Project measured normalized cubbies using the same content mode as
+        // the shelf artwork so books remain seated on the visible shelves.
         // normalized cubbies into the visible widget rectangle before laying out books.
         let artworkSize: CGSize
-        if size.width / size.height > artworkAspectRatio {
+        if aspectFill {
+            if size.width / size.height > artworkAspectRatio {
+                artworkSize = CGSize(width: size.width, height: size.width / artworkAspectRatio)
+            } else {
+                artworkSize = CGSize(width: size.height * artworkAspectRatio, height: size.height)
+            }
+        } else if size.width / size.height > artworkAspectRatio {
             artworkSize = CGSize(width: size.height * artworkAspectRatio, height: size.height)
         } else {
             artworkSize = CGSize(width: size.width, height: size.width / artworkAspectRatio)
@@ -337,21 +347,36 @@ private struct FramedCavityBooks: View {
     let theme: ShelfTheme
     let row: Int
     let layoutVariant: ShelfLayoutVariant
+    let compact: Bool
 
     var body: some View {
         GeometryReader { geo in
             Group {
-                switch theme {
-                case .walnut:
-                    darkOakComposition(size: geo.size)
-                case .realistic:
-                    whiteBuiltInComposition(size: geo.size)
-                case .classic, .artsy:
-                    EmptyView()
+                if compact {
+                    compactComposition(size: geo.size)
+                } else {
+                    switch theme {
+                    case .walnut:
+                        darkOakComposition(size: geo.size)
+                    case .realistic:
+                        whiteBuiltInComposition(size: geo.size)
+                    case .classic, .artsy:
+                        EmptyView()
+                    }
                 }
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .bottomLeading)
         }
+    }
+
+    private func compactComposition(size: CGSize) -> some View {
+        uprightRun(
+            Array(0...7),
+            width: size.width,
+            size: size,
+            heights: [0.84, 0.92, 0.87, 0.95, 0.82, 0.90, 0.86, 0.93],
+            forceTitles: true
+        )
     }
 
     @ViewBuilder
@@ -477,7 +502,7 @@ private struct FramedCavityBooks: View {
     }
 
     private func uprightRun(_ indexes: [Int], width: CGFloat, size: CGSize,
-                            heights: [CGFloat]) -> some View {
+                            heights: [CGFloat], forceTitles: Bool = false) -> some View {
         let selected = indexes.map(book)
         let rawWidth = max(1, selected.reduce(CGFloat.zero) { $0 + $1.spineWidth })
         let scale = width / rawWidth
@@ -486,7 +511,8 @@ private struct FramedCavityBooks: View {
             ForEach(Array(selected.enumerated()), id: \.offset) { offset, selectedBook in
                 upright(selectedBook,
                         height: size.height * heights[offset % heights.count],
-                        scale: scale)
+                        scale: scale,
+                        forceTitle: forceTitles)
             }
         }
         .frame(width: width, height: size.height, alignment: .bottomLeading)
@@ -509,8 +535,15 @@ private struct FramedCavityBooks: View {
         .clipped()
     }
 
-    private func upright(_ book: Book, height: CGFloat, scale: CGFloat) -> some View {
-        ItemView(item: .upright(book), spineHeight: height, theme: theme, thicknessScale: scale)
+    private func upright(_ book: Book, height: CGFloat, scale: CGFloat,
+                         forceTitle: Bool = false) -> some View {
+        ItemView(
+            item: .upright(book),
+            spineHeight: height,
+            theme: theme,
+            thicknessScale: scale,
+            forceTitle: forceTitle
+        )
     }
 
     private func book(_ index: Int) -> Book {
@@ -526,6 +559,7 @@ private struct ItemView: View {
     let spineHeight: CGFloat
     let theme: ShelfTheme
     var thicknessScale: CGFloat = 1
+    var forceTitle = false
 
     var body: some View {
         switch item {
@@ -563,7 +597,7 @@ private struct ItemView: View {
 
             gilt(ink, length: length, vertical: vertical)
 
-            if thickness >= 12 {
+            if forceTitle || thickness >= 12 {
                 // Give the title more of the spine and let it scale harder
                 // before truncation so narrow books still read clearly.
                 let run = length * titleRunFraction
@@ -620,20 +654,21 @@ private struct ItemView: View {
     }
 
     private func titleFont(for book: Book, thickness: CGFloat) -> Font {
+        let minimumSize: CGFloat = forceTitle ? 6 : 0
         switch theme {
         case .classic, .walnut, .realistic:
             switch book.typographyStyle {
             case .classic:
-                .system(size: min(9.4, thickness * 0.43), weight: .medium, design: .serif)
+                return .system(size: max(minimumSize, min(9.4, thickness * 0.43)), weight: .medium, design: .serif)
             case .modern:
-                .system(size: min(8.7, thickness * 0.40), weight: .semibold, design: .rounded)
+                return .system(size: max(minimumSize, min(8.7, thickness * 0.40)), weight: .semibold, design: .rounded)
             case .literary:
-                .system(size: min(9, thickness * 0.41), weight: .regular, design: .serif)
+                return .system(size: max(minimumSize, min(9, thickness * 0.41)), weight: .regular, design: .serif)
             case .scholarly:
-                .system(size: min(8.2, thickness * 0.37), weight: .medium, design: .monospaced)
+                return .system(size: max(minimumSize, min(8.2, thickness * 0.37)), weight: .medium, design: .monospaced)
             }
         case .artsy:
-            .system(size: min(9.5, thickness * 0.44), weight: .regular, design: .rounded)
+            return .system(size: max(minimumSize, min(9.5, thickness * 0.44)), weight: .regular, design: .rounded)
         }
     }
 
@@ -1024,7 +1059,8 @@ private struct Backdrop: View {
     let theme: ShelfTheme
 
     var body: some View {
-        ZStack {
+        GeometryReader { geo in
+            ZStack {
             switch theme {
             case .classic:
                 LinearGradient(colors: [Color(red: 0.16, green: 0.12, blue: 0.09),
@@ -1053,10 +1089,18 @@ private struct Backdrop: View {
             if let assetName, let image = ThemeAssetImage.named(assetName, subdirectory: "ThemeAssets/Shelves") {
                 image
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .aspectRatio(contentMode: fillsArtwork(in: geo.size) ? .fill : .fit)
                     .scaleEffect(x: artworkHorizontalScale, y: 1)
+                    .frame(width: geo.size.width, height: geo.size.height)
+                    .clipped()
             }
+            }
+            .frame(width: geo.size.width, height: geo.size.height)
         }
+    }
+
+    private func fillsArtwork(in size: CGSize) -> Bool {
+        theme == .walnut && size.width / max(1, size.height) < 1.25
     }
 
     private var assetName: String? {

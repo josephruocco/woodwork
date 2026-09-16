@@ -65,11 +65,12 @@ extension Book {
     /// The exact hourly draw used by both a configured widget and its matching
     /// page in the host app.
     static func onWidgetShelf(_ library: [Book], shelf: Int, at date: Date = .now,
-                              count: Int = 60) -> [Book] {
+                              count: Int = 60, variation: Int = 0) -> [Book] {
         guard !library.isEmpty else { return [] }
         let hourSeed = UInt64(date.timeIntervalSince1970 / 3600)
         let shelfSeed = UInt64(max(1, shelf)) &* 0x9E37_79B9_7F4A_7C15
-        var rng = SeededRNG(seed: hourSeed ^ shelfSeed ^ fnv1a("woodwork-widget"))
+        let variationSeed = UInt64(bitPattern: Int64(variation)) &* 0xD1B5_4A32_D192_ED03
+        var rng = SeededRNG(seed: hourSeed ^ shelfSeed ^ variationSeed ^ fnv1a("woodwork-widget"))
         return Array(library.shuffled(using: &rng).prefix(max(1, count)))
     }
 }
@@ -376,6 +377,7 @@ enum ShelfSettings {
 enum WidgetShelfRegistry {
     static let shelfRange = 1...6
     private static let lastSeenPrefix = "widgetShelf.lastSeen."
+    private static let variationPrefix = "widgetShelf.variation."
     private static let retention: TimeInterval = 14 * 24 * 60 * 60
 
     static func register(shelf: Int, at date: Date = .now) {
@@ -390,6 +392,21 @@ enum WidgetShelfRegistry {
         return shelfRange.filter {
             defaults.double(forKey: lastSeenPrefix + String($0)) >= cutoff
         }
+    }
+
+    static func variation(for shelf: Int) -> Int {
+        guard shelfRange.contains(shelf) else { return 0 }
+        return UserDefaults(suiteName: Library.appGroup)?
+            .integer(forKey: variationPrefix + String(shelf)) ?? 0
+    }
+
+    @discardableResult
+    static func reshuffle(shelf: Int) -> Int {
+        guard shelfRange.contains(shelf),
+              let defaults = UserDefaults(suiteName: Library.appGroup) else { return 0 }
+        let next = defaults.integer(forKey: variationPrefix + String(shelf)) &+ 1
+        defaults.set(next, forKey: variationPrefix + String(shelf))
+        return next
     }
 }
 
