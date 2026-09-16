@@ -61,7 +61,7 @@ Calibre integration imports book metadata into WoodWork and refreshes it when th
 
 ## Release configuration
 
-- Build: 5
+- Build: 6
 - Sign-in required: No
 - Release: Manually after App Review approval
 - Export compliance: App uses no non-exempt encryption

@@ -14,7 +14,7 @@ struct ContentView: View {
     @StateObject private var calibreDiscovery = CalibreDiscovery()
     @State private var books = Library.load()
     @State private var theme = ShelfSettings.loadTheme()
-    @State private var widgetShelves = WidgetShelfRegistry.activeShelves()
+    @State private var widgetShelves: [Int] = []
     @State private var selectedShelf = 1
     @State private var showDemo = ShelfSettings.showDemoBooks
     @State private var importing = false
@@ -524,11 +524,20 @@ struct ContentView: View {
     }
 
     private func refreshWidgetShelves() {
-        let active = WidgetShelfRegistry.activeShelves()
-        widgetShelves = active
-        let visible = active.isEmpty ? [1] : active
-        if !visible.contains(selectedShelf), let first = visible.first {
-            selectedShelf = first
+        WidgetCenter.shared.getCurrentConfigurations { result in
+            guard case .success(let configurations) = result else { return }
+            let active = Array(Set(configurations.compactMap { info -> Int? in
+                guard info.kind == "BookshelfWidget" else { return nil }
+                return info.widgetConfigurationIntent(of: SelectShelfIntent.self)?.shelf.rawValue
+            })).sorted()
+
+            Task { @MainActor in
+                widgetShelves = active
+                let visible = active.isEmpty ? [1] : active
+                if !visible.contains(selectedShelf), let first = visible.first {
+                    selectedShelf = first
+                }
+            }
         }
     }
 

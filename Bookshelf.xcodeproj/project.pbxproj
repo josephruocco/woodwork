@@ -32,6 +32,8 @@
 		BE5F0000000000000000A023 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F016 /* PrivacyInfo.xcprivacy */; };
 		BE5F0000000000000000A024 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F016 /* PrivacyInfo.xcprivacy */; };
 		BE5F0000000000000000A025 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F016 /* PrivacyInfo.xcprivacy */; };
+		BE5F0000000000000000A026 /* WidgetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F017 /* WidgetIntent.swift */; };
+		BE5F0000000000000000A027 /* WidgetIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F017 /* WidgetIntent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -78,6 +80,7 @@
 		BE5F0000000000000000F011 /* ThemeAssets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ThemeAssets; sourceTree = "<group>"; };
 		BE5F0000000000000000F012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BE5F0000000000000000F016 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		BE5F0000000000000000F017 /* WidgetIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetIntent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -124,6 +127,7 @@
 				BE5F0000000000000000F002 /* ShelfView.swift */,
 				BE5F0000000000000000F013 /* CloudLibrary.swift */,
 				BE5F0000000000000000F016 /* PrivacyInfo.xcprivacy */,
+				BE5F0000000000000000F017 /* WidgetIntent.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -318,6 +322,7 @@
 				BE5F0000000000000000A003 /* BookshelfApp.swift in Sources */,
 				BE5F0000000000000000A022 /* CalibreServer.swift in Sources */,
 				BE5F0000000000000000A017 /* CloudLibrary.swift in Sources */,
+				BE5F0000000000000000A026 /* WidgetIntent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -329,6 +334,7 @@
 				BE5F0000000000000000A005 /* ShelfView.swift in Sources */,
 				BE5F0000000000000000A006 /* BookshelfWidget.swift in Sources */,
 				BE5F0000000000000000A018 /* CloudLibrary.swift in Sources */,
+				BE5F0000000000000000A027 /* WidgetIntent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -410,7 +416,7 @@
 				INFOPLIST_FILE = Bookshelf/Info.plist;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -440,7 +446,7 @@
 				INFOPLIST_FILE = Bookshelf/Info.plist;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -467,7 +473,7 @@
 				CODE_SIGN_ENTITLEMENTS = BookshelfWidget/BookshelfWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BookshelfWidget/Info.plist;
@@ -493,7 +499,7 @@
 				CODE_SIGN_ENTITLEMENTS = BookshelfWidget/BookshelfWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BookshelfWidget/Info.plist;
@@ -518,7 +524,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				ENABLE_APP_SANDBOX = YES;
 				CODE_SIGN_ENTITLEMENTS = BookshelfScanner/BookshelfScanner.entitlements;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -544,7 +550,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				ENABLE_APP_SANDBOX = YES;
 				CODE_SIGN_ENTITLEMENTS = BookshelfScanner/BookshelfScanner.entitlements;
 				ENABLE_HARDENED_RUNTIME = YES;

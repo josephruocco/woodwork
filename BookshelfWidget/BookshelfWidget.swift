@@ -2,33 +2,6 @@ import WidgetKit
 import SwiftUI
 import AppIntents
 
-enum WidgetShelf: Int, AppEnum {
-    case one = 1
-    case two
-    case three
-    case four
-    case five
-    case six
-
-    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Shelf"
-    static let caseDisplayRepresentations: [WidgetShelf: DisplayRepresentation] = [
-        .one: "Shelf 1",
-        .two: "Shelf 2",
-        .three: "Shelf 3",
-        .four: "Shelf 4",
-        .five: "Shelf 5",
-        .six: "Shelf 6"
-    ]
-}
-
-struct SelectShelfIntent: WidgetConfigurationIntent {
-    static let title: LocalizedStringResource = "WoodWork Shelf"
-    static let description = IntentDescription("Choose a different Shelf number for different books and layouts.")
-
-    @Parameter(title: "Shelf", default: .one)
-    var shelf: WidgetShelf
-}
-
 struct ShelfEntry: TimelineEntry {
     let date: Date
     let books: [Book]
@@ -55,22 +28,38 @@ struct Provider: AppIntentTimelineProvider {
     func snapshot(for configuration: SelectShelfIntent, in context: Context) async -> ShelfEntry {
         let shelf = configuration.shelf.rawValue
         if !context.isPreview { WidgetShelfRegistry.register(shelf: shelf) }
-        return entry(at: .now, from: Library.load(), shelf: shelf)
+        let library = context.isPreview ? Library.load() : await refreshedLibrary()
+        return entry(at: .now, from: library, shelf: shelf)
     }
 
     func timeline(for configuration: SelectShelfIntent, in context: Context) async -> Timeline<ShelfEntry> {
-        let library = Library.load()
-        let hour = Calendar.current.date(bytruncating: .now)
         let shelf = configuration.shelf.rawValue
         WidgetShelfRegistry.register(shelf: shelf)
-        let entries = (0..<12).map {
-            entry(
-                at: hour.addingTimeInterval(Double($0) * 3600),
-                from: library,
-                shelf: shelf
-            )
+        let library = await refreshedLibrary()
+        let now = Date.now
+
+        // Do not precompute hours of entries from one library snapshot. If the
+        // Mac publishes a new scan, a short timeline lets the widget see it
+        // without requiring the iPhone app to be opened first.
+        return Timeline(
+            entries: [entry(at: now, from: library, shelf: shelf)],
+            policy: .after(now.addingTimeInterval(30 * 60))
+        )
+    }
+
+    private func refreshedLibrary() async -> [Book] {
+        guard let incoming = await CloudLibrary.fetch(timeout: 3) else {
+            return Library.load()
         }
-        return Timeline(entries: entries, policy: .atEnd)
+
+        let stored = Library.storedBooks()
+        let combined = Library.merged(
+            stored,
+            with: incoming,
+            replacingSources: ["books", "kindle"]
+        )
+        if combined != stored { try? Library.save(combined) }
+        return Library.load()
     }
 
     /// A fresh draw each hour, seeded by that hour so re-rendering the same entry
@@ -83,12 +72,6 @@ struct Provider: AppIntentTimelineProvider {
             shelf: shelf,
             layoutVariant: .forShelf(shelf)
         )
-    }
-}
-
-private extension Calendar {
-    func date(bytruncating date: Date) -> Date {
-        self.date(from: dateComponents([.year, .month, .day, .hour], from: date)) ?? date
     }
 }
 
