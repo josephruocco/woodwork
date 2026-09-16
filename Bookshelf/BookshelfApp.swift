@@ -42,8 +42,8 @@ struct ContentView: View {
                 widgetPager
 
                 themeCard
-                demoCard
                 shelfNowCard
+                demoCard
                 calibreCard
                 footerRow
 
@@ -202,7 +202,7 @@ struct ContentView: View {
                 Button {
                     reshuffleSelectedShelf()
                 } label: {
-                    Label("Shuffle shelf", systemImage: "shuffle")
+                    Label("Shuffle", systemImage: "shuffle")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -210,7 +210,7 @@ struct ContentView: View {
                 Button {
                     openRandomBook()
                 } label: {
-                    Label("Open a random book", systemImage: "book")
+                    Label("Random", systemImage: "book")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
@@ -594,8 +594,24 @@ struct ContentView: View {
     }
 
     private func refreshWidgetShelves() {
+        // WidgetKit can briefly return a deleted Home Screen configuration
+        // from its cache. Ask it to reconcile, then query after that update has
+        // had time to settle instead of displaying the stale first response.
+        WidgetCenter.shared.reloadTimelines(ofKind: "BookshelfWidget")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            queryCurrentWidgetShelves()
+        }
+    }
+
+    private func queryCurrentWidgetShelves() {
         WidgetCenter.shared.getCurrentConfigurations { result in
-            guard case .success(let configurations) = result else { return }
+            guard case .success(let configurations) = result else {
+                Task { @MainActor in
+                    widgetShelves = []
+                    selectedShelf = 1
+                }
+                return
+            }
             let active = Array(Set(configurations.compactMap { info -> Int? in
                 guard info.kind == "BookshelfWidget" else { return nil }
                 return info.widgetConfigurationIntent(of: SelectShelfIntent.self)?.shelf.rawValue

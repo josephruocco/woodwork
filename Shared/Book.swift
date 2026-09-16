@@ -153,6 +153,9 @@ struct Cloth {
 
     var luminance: Double { 0.2126 * r + 0.7152 * g + 0.0722 * b }
     var isLight: Bool { luminance > 0.5 }
+    var needsDarkTitleInk: Bool {
+        luminance >= 0.78 || (r >= 0.64 && g >= 0.43 && b <= 0.32)
+    }
 }
 
 // MARK: - Seeded shuffle

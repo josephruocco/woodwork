@@ -738,21 +738,21 @@ private struct ItemView: View {
     private func spineInkColor(_ cloth: Cloth) -> Color {
         switch theme {
         case .classic:
-            cloth.isLight
+            cloth.needsDarkTitleInk
                 ? Color(red: 0.18, green: 0.13, blue: 0.09)
-                : Color(red: 0.93, green: 0.89, blue: 0.78)
+                : Color(red: 0.98, green: 0.96, blue: 0.90)
         case .walnut:
-            cloth.isLight
+            cloth.needsDarkTitleInk
                 ? Color(red: 0.16, green: 0.10, blue: 0.06)
-                : Color(red: 0.90, green: 0.84, blue: 0.68)
+                : Color(red: 1.00, green: 0.97, blue: 0.88)
         case .realistic:
-            cloth.isLight
+            cloth.needsDarkTitleInk
                 ? Color(red: 0.25, green: 0.23, blue: 0.20)
-                : Color(red: 0.98, green: 0.97, blue: 0.92)
+                : Color.white
         case .artsy:
-            cloth.isLight
+            cloth.needsDarkTitleInk
                 ? Color(red: 0.23, green: 0.20, blue: 0.18)
-                : Color.white.opacity(0.96)
+                : Color.white
         }
     }
 
