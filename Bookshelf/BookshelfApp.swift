@@ -646,7 +646,8 @@ struct ContentView: View {
                 guard info.kind == "BookshelfWidget" else { return nil }
                 return info.widgetConfigurationIntent(of: SelectShelfIntent.self)?.shelf.rawValue
             })).sorted()
-            let active = configured
+            let suppressed = WidgetShelfRegistry.suppressedShelves
+            let active = configured.filter { !suppressed.contains($0) }
 
             Task { @MainActor in
                 widgetShelves = active
@@ -664,6 +665,7 @@ struct ContentView: View {
               let shelf = Int(component),
               WidgetShelfRegistry.shelfRange.contains(shelf) else { return }
         WidgetShelfRegistry.register(shelf: shelf)
+        WidgetShelfRegistry.restore(shelf: shelf)
         widgetShelves = [shelf]
         selectedShelf = shelf
         message = "Synced to Home Screen Widget Shelf \(shelf)."

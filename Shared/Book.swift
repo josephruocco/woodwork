@@ -385,6 +385,7 @@ enum WidgetShelfRegistry {
     static let shelfRange = 1...6
     private static let lastSeenPrefix = "widgetShelf.lastSeen."
     private static let variationPrefix = "widgetShelf.variation."
+    private static let suppressedKey = "widgetShelf.suppressed"
     private static let retention: TimeInterval = 14 * 24 * 60 * 60
 
     static func register(shelf: Int, at date: Date = .now) {
@@ -405,6 +406,20 @@ enum WidgetShelfRegistry {
         guard shelfRange.contains(shelf) else { return 0 }
         return UserDefaults(suiteName: Library.appGroup)?
             .double(forKey: lastSeenPrefix + String(shelf)) ?? 0
+    }
+
+    static var suppressedShelves: Set<Int> {
+        let values = UserDefaults(suiteName: Library.appGroup)?
+            .array(forKey: suppressedKey) as? [Int] ?? []
+        return Set(values.filter(shelfRange.contains))
+    }
+
+    static func restore(shelf: Int) {
+        guard shelfRange.contains(shelf),
+              let defaults = UserDefaults(suiteName: Library.appGroup) else { return }
+        var suppressed = suppressedShelves
+        suppressed.remove(shelf)
+        defaults.set(suppressed.sorted(), forKey: suppressedKey)
     }
 
     static func variation(for shelf: Int) -> Int {
