@@ -46,6 +46,7 @@ struct ContentView: View {
                 demoCard
                 calibreCard
                 footerRow
+                supportLinks
 
                 if let message {
                     Text(message)
@@ -198,17 +199,6 @@ struct ContentView: View {
             }
             .padding(.horizontal, 4)
 
-            if visibleWidgetShelves.count > 1 {
-                Button {
-                    keepOnlySelectedShelf()
-                } label: {
-                    Label("Keep only this shelf", systemImage: "checkmark.circle")
-                        .font(.footnote.weight(.semibold))
-                }
-                .buttonStyle(.borderless)
-                .foregroundStyle(.secondary)
-            }
-
             HStack(spacing: 10) {
                 Button {
                     reshuffleSelectedShelf()
@@ -317,6 +307,21 @@ struct ContentView: View {
         }
         .padding(18)
         .background(panelBackground)
+    }
+
+    private var supportLinks: some View {
+        HStack(spacing: 18) {
+            Link("Support", destination: URL(string: "https://getwoodwork.app/support/")!)
+            Link("Privacy", destination: URL(string: "https://getwoodwork.app/privacy/")!)
+            Link(
+                "Contact",
+                destination: URL(string: "mailto:support@getwoodwork.app?subject=WoodWork%20Support")!
+            )
+        }
+        .font(.footnote.weight(.medium))
+        .foregroundStyle(Color(red: 0.45, green: 0.29, blue: 0.18))
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 6)
     }
 
     private var calibreCard: some View {
@@ -606,10 +611,9 @@ struct ContentView: View {
     }
 
     private func refreshWidgetShelves() {
-        // WidgetKit can briefly return a deleted Home Screen configuration
-        // from its cache. Ask it to reconcile, then query after that update has
-        // had time to settle instead of displaying the stale first response.
-        WidgetCenter.shared.reloadTimelines(ofKind: "BookshelfWidget")
+        // Do not reload here: WidgetKit can retain a deleted configuration in
+        // its cache, and reloading causes that ghost to render again. Query
+        // after Home Screen changes have had time to settle.
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             queryCurrentWidgetShelves()
         }
@@ -628,11 +632,19 @@ struct ContentView: View {
                 guard info.kind == "BookshelfWidget" else { return nil }
                 return info.widgetConfigurationIntent(of: SelectShelfIntent.self)?.shelf.rawValue
             })).sorted()
-            let recentlyRendered = Set(WidgetShelfRegistry.activeShelves(within: 2 * 60))
-            let reconciled = configured.filter(recentlyRendered.contains)
-            let rendered = reconciled.isEmpty ? configured : reconciled
-            let suppressed = WidgetShelfRegistry.suppressedShelves
-            let active = rendered.filter { !suppressed.contains($0) }
+            // iOS sometimes reports a deleted configuration alongside the
+            // real one. The real widget is the one whose provider most
+            // recently rendered on the Home Screen.
+            let active: [Int]
+            if configured.count <= 1 {
+                active = configured
+            } else if let latest = configured.max(by: {
+                WidgetShelfRegistry.lastSeen(shelf: $0) < WidgetShelfRegistry.lastSeen(shelf: $1)
+            }) {
+                active = [latest]
+            } else {
+                active = []
+            }
 
             Task { @MainActor in
                 widgetShelves = active
@@ -650,15 +662,9 @@ struct ContentView: View {
               let shelf = Int(component),
               WidgetShelfRegistry.shelfRange.contains(shelf) else { return }
         WidgetShelfRegistry.register(shelf: shelf)
-        WidgetShelfRegistry.restore(shelf: shelf)
-        refreshWidgetShelves()
+        widgetShelves = [shelf]
         selectedShelf = shelf
-    }
-
-    private func keepOnlySelectedShelf() {
-        WidgetShelfRegistry.keepOnly(shelf: selectedShelf, among: visibleWidgetShelves)
-        widgetShelves = [selectedShelf]
-        message = "Showing only Widget Shelf \(selectedShelf). Tap another WoodWork widget to restore its page."
+        message = "Synced to Home Screen Widget Shelf \(shelf)."
     }
 
     private var appBackground: some View {
