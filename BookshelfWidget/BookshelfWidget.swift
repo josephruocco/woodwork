@@ -87,7 +87,8 @@ struct BookshelfWidgetView: View {
         ShelfView(
             books: entry.books,
             theme: entry.theme,
-            layoutVariant: entry.layoutVariant
+            layoutVariant: entry.layoutVariant,
+            preferredRows: ShelfLayoutVariant.rowCount(forShelf: entry.shelf)
         )
             .containerBackground(for: .widget) { Color.black }
             // Tapping anywhere opens the app, which lists this hour's books.

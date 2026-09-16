@@ -53,6 +53,7 @@ struct ShelfView: View {
     let books: [Book]
     var theme: ShelfTheme = .classic
     var layoutVariant: ShelfLayoutVariant = .balanced
+    var preferredRows: Int? = nil
 
     private let rowHeight: CGFloat = 118
     private let sideInset: CGFloat = 5
@@ -73,7 +74,9 @@ struct ShelfView: View {
     }
 
     private func proceduralShelf(size: CGSize) -> some View {
-        let rows = max(1, Int(size.height / rowHeight))
+        let rows = size.height < 250
+            ? 1
+            : max(1, preferredRows ?? Int(size.height / rowHeight))
         let rowH = size.height / CGFloat(rows)
         let usable = size.width - sideInset * 2
         let spineSpace = rowH - boardThickness - 6
@@ -221,10 +224,12 @@ struct ShelfView: View {
         let slack: CGFloat = wantsLean ? CGFloat(Int.random(in: slackRange, using: &rng)) : 0
         let standing = bestFit(pool, width: max(0, width - pileWidth - slack - 2), row: index)
 
-        // The book at the open end is the one that slumps.
+        // A leaning book must rest on another upright book. Lean the
+        // penultimate book toward the final upright instead of leaving an
+        // unsupported book at the open edge or beside a low stack.
         var items = standing.map { ShelfItem.upright($0) }
-        if wantsLean, items.count >= 2, case .upright(let book) = items[items.count - 1] {
-            items[items.count - 1] = .leaning(book)
+        if wantsLean, items.count >= 3, case .upright(let book) = items[items.count - 2] {
+            items[items.count - 2] = .leaning(book)
         }
         return items + pile
     }

@@ -228,7 +228,8 @@ struct ContentView: View {
                 variation: shelfVariations[shelf] ?? 0
             ),
             theme: theme,
-            layoutVariant: .forShelf(shelf)
+            layoutVariant: .forShelf(shelf),
+            preferredRows: ShelfLayoutVariant.rowCount(forShelf: shelf)
         )
         .frame(height: 350)
         .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
@@ -612,10 +613,13 @@ struct ContentView: View {
                 }
                 return
             }
-            let active = Array(Set(configurations.compactMap { info -> Int? in
+            let configured = Array(Set(configurations.compactMap { info -> Int? in
                 guard info.kind == "BookshelfWidget" else { return nil }
                 return info.widgetConfigurationIntent(of: SelectShelfIntent.self)?.shelf.rawValue
             })).sorted()
+            let recentlyRendered = Set(WidgetShelfRegistry.activeShelves(within: 2 * 60))
+            let reconciled = configured.filter(recentlyRendered.contains)
+            let active = reconciled.isEmpty ? configured : reconciled
 
             Task { @MainActor in
                 widgetShelves = active

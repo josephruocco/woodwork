@@ -331,6 +331,10 @@ enum ShelfLayoutVariant: Int, CaseIterable, Codable, Identifiable {
     static func forShelf(_ shelf: Int) -> ShelfLayoutVariant {
         allCases[(max(1, shelf) - 1) % allCases.count]
     }
+
+    static func rowCount(forShelf shelf: Int) -> Int {
+        (1...3).contains(shelf) ? 3 : 2
+    }
 }
 
 enum ShelfSettings {
@@ -389,9 +393,9 @@ enum WidgetShelfRegistry {
         defaults.set(date.timeIntervalSince1970, forKey: lastSeenPrefix + String(shelf))
     }
 
-    static func activeShelves(at date: Date = .now) -> [Int] {
+    static func activeShelves(at date: Date = .now, within interval: TimeInterval = retention) -> [Int] {
         guard let defaults = UserDefaults(suiteName: Library.appGroup) else { return [] }
-        let cutoff = date.timeIntervalSince1970 - retention
+        let cutoff = date.timeIntervalSince1970 - interval
         return shelfRange.filter {
             defaults.double(forKey: lastSeenPrefix + String($0)) >= cutoff
         }

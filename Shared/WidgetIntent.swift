@@ -10,12 +10,12 @@ enum WidgetShelf: Int, AppEnum {
 
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Shelf"
     static let caseDisplayRepresentations: [WidgetShelf: DisplayRepresentation] = [
-        .one: "Shelf 1",
-        .two: "Shelf 2",
-        .three: "Shelf 3",
-        .four: "Shelf 4",
-        .five: "Shelf 5",
-        .six: "Shelf 6"
+        .one: "Shelf 1 · 3 rows",
+        .two: "Shelf 2 · 3 rows",
+        .three: "Shelf 3 · 3 rows",
+        .four: "Shelf 4 · 2 rows",
+        .five: "Shelf 5 · 2 rows",
+        .six: "Shelf 6 · 2 rows"
     ]
 }
 
