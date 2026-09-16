@@ -65,15 +65,17 @@ struct Provider: AppIntentTimelineProvider {
     /// A fresh draw each hour, seeded by that hour so re-rendering the same entry
     /// never reshuffles the shelf under you.
     private func entry(at date: Date, from library: [Book], shelf: Int) -> ShelfEntry {
+        let displayed = Book.onWidgetShelf(
+            library,
+            shelf: shelf,
+            at: date,
+            count: poolSize,
+            variation: WidgetShelfRegistry.variation(for: shelf)
+        )
+        WidgetShelfRegistry.recordDisplayedBooks(displayed, shelf: shelf)
         return ShelfEntry(
             date: date,
-            books: Book.onWidgetShelf(
-                library,
-                shelf: shelf,
-                at: date,
-                count: poolSize,
-                variation: WidgetShelfRegistry.variation(for: shelf)
-            ),
+            books: displayed,
             theme: ShelfSettings.loadTheme(),
             shelf: shelf,
             layoutVariant: .forShelf(shelf)

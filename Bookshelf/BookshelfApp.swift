@@ -16,6 +16,8 @@ struct ContentView: View {
     @State private var books = Library.load()
     @State private var theme = ShelfSettings.loadTheme()
     @State private var widgetShelves: [Int] = []
+    @State private var widgetFamilies: [Int: WidgetFamily] = [:]
+    @State private var widgetDisplayRevision = 0
     @State private var selectedShelf = 1
     @State private var showDemo = ShelfSettings.showDemoBooks
     @State private var importing = false
@@ -102,12 +104,7 @@ struct ContentView: View {
     }
 
     private var selectedShelfBooks: [Book] {
-        Book.onWidgetShelf(
-            books,
-            shelf: selectedShelf,
-            count: 60,
-            variation: shelfVariations[selectedShelf] ?? 0
-        )
+        widgetBooks(for: selectedShelf)
     }
 
     private var featured: [Book] {
@@ -224,24 +221,30 @@ struct ContentView: View {
     }
 
     private func shelfPreview(_ shelf: Int) -> some View {
-        ShelfView(
-            books: Book.onWidgetShelf(
-                books,
-                shelf: shelf,
-                count: 60,
-                variation: shelfVariations[shelf] ?? 0
-            ),
-            theme: theme,
-            layoutVariant: .forShelf(shelf),
-            preferredRows: ShelfLayoutVariant.rowCount(forShelf: shelf)
-        )
+        GeometryReader { geo in
+            let family = widgetFamilies[shelf] ?? .systemLarge
+            let previewHeight = min(350, geo.size.width / widgetAspectRatio(family))
+
+            VStack {
+                Spacer(minLength: 0)
+                ShelfView(
+                    books: widgetBooks(for: shelf),
+                    theme: theme,
+                    layoutVariant: .forShelf(shelf),
+                    preferredRows: ShelfLayoutVariant.rowCount(forShelf: shelf)
+                )
+                .id(widgetDisplayRevision)
+                .frame(width: geo.size.width, height: previewHeight)
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
+                        .stroke(.white.opacity(theme == .artsy ? 0.18 : 0.10), lineWidth: 1)
+                )
+                .shadow(color: .black.opacity(theme == .artsy ? 0.10 : 0.14), radius: 18, y: 10)
+                Spacer(minLength: 0)
+            }
+        }
         .frame(height: 350)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(.white.opacity(theme == .artsy ? 0.18 : 0.10), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(theme == .artsy ? 0.10 : 0.14), radius: 18, y: 10)
     }
 
     private var shelfNowCard: some View {
@@ -559,7 +562,40 @@ struct ContentView: View {
 
     private func reshuffleSelectedShelf() {
         shelfVariations[selectedShelf] = WidgetShelfRegistry.reshuffle(shelf: selectedShelf)
+        let displayed = Book.onWidgetShelf(
+            books,
+            shelf: selectedShelf,
+            count: 60,
+            variation: shelfVariations[selectedShelf] ?? 0
+        )
+        WidgetShelfRegistry.recordDisplayedBooks(displayed, shelf: selectedShelf)
+        widgetDisplayRevision &+= 1
         WidgetCenter.shared.reloadTimelines(ofKind: "BookshelfWidget")
+    }
+
+    private func widgetBooks(for shelf: Int) -> [Book] {
+        if let displayed = WidgetShelfRegistry.displayedBooks(from: books, shelf: shelf) {
+            return displayed
+        }
+        return Book.onWidgetShelf(
+            books,
+            shelf: shelf,
+            count: 60,
+            variation: shelfVariations[shelf] ?? 0
+        )
+    }
+
+    private func widgetAspectRatio(_ family: WidgetFamily) -> CGFloat {
+        switch family {
+        case .systemSmall:
+            return 1
+        case .systemMedium:
+            return 2.15
+        case .systemLarge:
+            return 0.96
+        default:
+            return 1
+        }
     }
 
     private func openRandomBook() {
@@ -642,15 +678,22 @@ struct ContentView: View {
                 }
                 return
             }
-            let configured = Array(Set(configurations.compactMap { info -> Int? in
-                guard info.kind == "BookshelfWidget" else { return nil }
-                return info.widgetConfigurationIntent(of: SelectShelfIntent.self)?.shelf.rawValue
-            })).sorted()
+            let matching = configurations.compactMap { info -> (Int, WidgetFamily)? in
+                guard info.kind == "BookshelfWidget",
+                      let shelf = info.widgetConfigurationIntent(of: SelectShelfIntent.self)?.shelf.rawValue else {
+                    return nil
+                }
+                return (shelf, info.family)
+            }
+            let configured = Array(Set(matching.map(\.0))).sorted()
             let suppressed = WidgetShelfRegistry.suppressedShelves
             let active = configured.filter { !suppressed.contains($0) }
+            let families = Dictionary(matching.map { ($0.0, $0.1) }, uniquingKeysWith: { current, _ in current })
 
             Task { @MainActor in
                 widgetShelves = active
+                widgetFamilies = families
+                widgetDisplayRevision &+= 1
                 let visible = active.isEmpty ? [1] : active
                 if !visible.contains(selectedShelf), let first = visible.first {
                     selectedShelf = first

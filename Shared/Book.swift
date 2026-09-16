@@ -386,6 +386,7 @@ enum WidgetShelfRegistry {
     private static let lastSeenPrefix = "widgetShelf.lastSeen."
     private static let variationPrefix = "widgetShelf.variation."
     private static let suppressedKey = "widgetShelf.suppressed"
+    private static let displayedBooksPrefix = "widgetShelf.displayedBooks."
     private static let retention: TimeInterval = 14 * 24 * 60 * 60
 
     static func register(shelf: Int, at date: Date = .now) {
@@ -420,6 +421,22 @@ enum WidgetShelfRegistry {
         var suppressed = suppressedShelves
         suppressed.remove(shelf)
         defaults.set(suppressed.sorted(), forKey: suppressedKey)
+    }
+
+    static func recordDisplayedBooks(_ books: [Book], shelf: Int) {
+        guard shelfRange.contains(shelf),
+              let defaults = UserDefaults(suiteName: Library.appGroup) else { return }
+        defaults.set(books.map(\.id), forKey: displayedBooksPrefix + String(shelf))
+    }
+
+    static func displayedBooks(from library: [Book], shelf: Int) -> [Book]? {
+        guard shelfRange.contains(shelf),
+              let ids = UserDefaults(suiteName: Library.appGroup)?
+                .stringArray(forKey: displayedBooksPrefix + String(shelf)),
+              !ids.isEmpty else { return nil }
+        let byID = Dictionary(library.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+        let ordered = ids.compactMap { byID[$0] }
+        return ordered.isEmpty ? nil : ordered
     }
 
     static func variation(for shelf: Int) -> Int {
