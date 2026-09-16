@@ -67,8 +67,10 @@ struct ScannerView: View {
     }
 
     private func save() {
+        NSApp.activate(ignoringOtherApps: true)
         let panel = NSSavePanel()
         panel.nameFieldStringValue = "books.json"
+        panel.canCreateDirectories = true
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {
             try scanner.export(to: url)
