@@ -573,8 +573,10 @@ struct ContentView: View {
             variation: shelfVariations[selectedShelf] ?? 0
         )
         WidgetShelfRegistry.recordDisplayedBooks(displayed, shelf: selectedShelf)
+        WidgetShelfRegistry.synchronizeSharedState()
         widgetDisplayRevision &+= 1
-        WidgetCenter.shared.reloadTimelines(ofKind: "BookshelfWidget")
+        WidgetCenter.shared.reloadAllTimelines()
+        message = "Shuffled Widget Shelf \(selectedShelf). Home Screen update requested."
     }
 
     private func widgetBooks(for shelf: Int) -> [Book] {
@@ -692,7 +694,12 @@ struct ContentView: View {
             let configured = Array(Set(matching.map(\.0))).sorted()
             let suppressed = WidgetShelfRegistry.suppressedShelves
             let active = configured.filter { !suppressed.contains($0) }
-            let families = Dictionary(matching.map { ($0.0, $0.1) }, uniquingKeysWith: { current, _ in current })
+            let families = Dictionary(
+                matching.map { ($0.0, $0.1) },
+                uniquingKeysWith: { current, candidate in
+                    widgetFamilyRank(candidate) > widgetFamilyRank(current) ? candidate : current
+                }
+            )
 
             Task { @MainActor in
                 widgetShelves = active
@@ -716,6 +723,21 @@ struct ContentView: View {
         widgetShelves = [shelf]
         selectedShelf = shelf
         message = "Synced to Home Screen Widget Shelf \(shelf)."
+    }
+
+    private func widgetFamilyRank(_ family: WidgetFamily) -> Int {
+        switch family {
+        case .systemSmall:
+            return 1
+        case .systemMedium:
+            return 2
+        case .systemLarge:
+            return 3
+        case .systemExtraLarge:
+            return 4
+        default:
+            return 0
+        }
     }
 
     private var appBackground: some View {

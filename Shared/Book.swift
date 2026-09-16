@@ -439,6 +439,10 @@ enum WidgetShelfRegistry {
         return ordered.isEmpty ? nil : ordered
     }
 
+    static func synchronizeSharedState() {
+        UserDefaults(suiteName: Library.appGroup)?.synchronize()
+    }
+
     static func variation(for shelf: Int) -> Int {
         guard shelfRange.contains(shelf) else { return 0 }
         return UserDefaults(suiteName: Library.appGroup)?
