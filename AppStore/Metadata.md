@@ -24,22 +24,23 @@ WoodWork turns your ebook library into a living bookshelf on your iPhone Home Sc
 
 Each book appears as a physical spine, with thickness based on its page count. Your shelf reshuffles throughout the day, bringing forgotten books back into view.
 
-• Build a shelf from your Apple Books and Kindle libraries
+• Build a shelf from Calibre, Apple Books, Kindle, or a library file
+• Import and refresh directly from a Calibre Content Server over Wi-Fi
 • Add up to six widgets, each showing different books and layouts
 • Choose Classic, Dark Oak, White Built-In, or Artsy
 • See which books are currently displayed on each widget
 • Tap a title to open it in its reading app
 • Import privately using WoodWork Scanner for Mac or a library file
 
-No accounts, ads, analytics, or tracking. Your library stays yours.
+Calibre integration is a one-way library import: WoodWork reads your book metadata without changing your Calibre library. No WoodWork account, ads, analytics, or tracking. Your library stays yours.
 
 ## Keywords
 
-books,reading,bookshelf,widget,library,ebooks,book discovery,Apple Books,Kindle
+books,reading,bookshelf,widget,library,ebooks,Calibre,Apple Books,Kindle,book discovery
 
 ## What's New in Version 1.0
 
-Initial release. Turn your ebook library into a living Home Screen bookshelf with multiple layouts and four visual themes.
+Initial release. Turn your ebook library into a living Home Screen bookshelf, import from Calibre, and choose from four visual themes.
 
 ## App Review notes
 
@@ -54,11 +55,15 @@ To review the widget:
 
 The WoodWork Scanner for Mac and personal library import are optional. No external hardware or paid account is required.
 
+To review Calibre import, run Calibre on a computer connected to the same Wi-Fi network and choose Connect/share → Start Content Server. In WoodWork, tap Connect under Calibre Content Server and select the discovered server. A full server address can also be entered manually. Username and password are optional and only needed when configured in Calibre.
+
+Calibre integration imports book metadata into WoodWork and refreshes it when the app becomes active. It does not modify the Calibre library, download ebook files, or sync reading progress. Calibre is not required to review the app because the bundled demo library exercises the shelf and widget immediately.
+
 ## Release configuration
 
-- Build: 3
+- Build: 4
 - Sign-in required: No
-- Release: Automatically after App Review approval
+- Release: Manually after App Review approval
 - Export compliance: App uses no non-exempt encryption
 
 ## Screenshot order
@@ -67,6 +72,6 @@ The WoodWork Scanner for Mac and personal library import are optional. No extern
 2. White Built-In Home Screen widget
 3. Classic Home Screen widget
 4. Main app showing the current widget shelf
-5. Theme picker or personal-library import
+5. Calibre Content Server connection and import
 
-Use 1284 × 2778 portrait PNGs for the 6.5-inch screenshot group. Capture the signed TestFlight build when possible so the widget is displaying a loaded timeline rather than WidgetKit's redacted placeholder.
+Use 1320 × 2868 portrait PNGs from the iPhone 17 Pro Max simulator for the 6.9-inch screenshot group. Capture the signed TestFlight build when possible so the widget is displaying a loaded timeline rather than WidgetKit's redacted placeholder.
