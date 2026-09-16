@@ -477,9 +477,13 @@ struct ContentView: View {
 
     private func refreshEverything() async {
         await syncLibrary()
+        WidgetCenter.shared.reloadTimelines(ofKind: "BookshelfWidget")
+        // The widget provider publishes the exact ordered book IDs into the
+        // App Group. Wait for both Home Screen timelines to regenerate before
+        // redrawing the in-app previews from those IDs.
+        try? await Task.sleep(for: .seconds(2))
+        widgetDisplayRevision &+= 1
         refreshWidgetShelves()
-        // Keep the refresh indicator visible until WidgetKit's asynchronous
-        // configuration query has completed its reconciliation pass.
         try? await Task.sleep(for: .seconds(1))
         message = calibreServerReachable == false
             ? "Library refreshed. Calibre server not found."
