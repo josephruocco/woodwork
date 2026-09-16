@@ -29,6 +29,9 @@
 		BE5F0000000000000000A014 /* ThemeAssets in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F011 /* ThemeAssets */; };
 		BE5F0000000000000000A015 /* ThemeAssets in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F011 /* ThemeAssets */; };
 		BE5F0000000000000000A016 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F012 /* Assets.xcassets */; };
+		BE5F0000000000000000A023 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F016 /* PrivacyInfo.xcprivacy */; };
+		BE5F0000000000000000A024 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F016 /* PrivacyInfo.xcprivacy */; };
+		BE5F0000000000000000A025 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = BE5F0000000000000000F016 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +77,7 @@
 		BE5F0000000000000000F010 /* BookshelfWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = BookshelfWidget.entitlements; sourceTree = "<group>"; };
 		BE5F0000000000000000F011 /* ThemeAssets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ThemeAssets; sourceTree = "<group>"; };
 		BE5F0000000000000000F012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BE5F0000000000000000F016 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -119,6 +123,7 @@
 				BE5F0000000000000000F001 /* Book.swift */,
 				BE5F0000000000000000F002 /* ShelfView.swift */,
 				BE5F0000000000000000F013 /* CloudLibrary.swift */,
+				BE5F0000000000000000F016 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -278,6 +283,7 @@
 				BE5F0000000000000000A020 /* demo.json in Resources */,
 				BE5F0000000000000000A014 /* ThemeAssets in Resources */,
 				BE5F0000000000000000A016 /* Assets.xcassets in Resources */,
+				BE5F0000000000000000A023 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,6 +294,7 @@
 				BE5F0000000000000000A013 /* books.json in Resources */,
 				BE5F0000000000000000A021 /* demo.json in Resources */,
 				BE5F0000000000000000A015 /* ThemeAssets in Resources */,
+				BE5F0000000000000000A024 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -295,6 +302,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BE5F0000000000000000A025 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
