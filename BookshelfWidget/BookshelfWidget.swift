@@ -70,7 +70,9 @@ struct Provider: AppIntentTimelineProvider {
             shelf: shelf,
             at: date,
             count: poolSize,
-            variation: WidgetShelfRegistry.variation(for: shelf)
+            variation: WidgetShelfRegistry.variation(for: shelf),
+            mode: ShelfSettings.loadMode(for: shelf),
+            displayHistory: WidgetShelfRegistry.displayHistory(shelf: shelf)
         )
         WidgetShelfRegistry.recordDisplayedBooks(displayed, shelf: shelf)
         return ShelfEntry(

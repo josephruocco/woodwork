@@ -62,6 +62,54 @@ assert(widgetShelfOne == Book.onWidgetShelf(library, shelf: 1, at: fixedHour))
 assert(widgetShelfOne != Book.onWidgetShelf(library, shelf: 2, at: fixedHour),
        "different widget shelves should display different books")
 
+let seenHistory = Dictionary(
+    uniqueKeysWithValues: library.prefix(180).enumerated().map {
+        ($0.element.id, fixedHour.timeIntervalSince1970 - Double($0.offset))
+    }
+)
+let rediscovered = Book.onWidgetShelf(
+    library,
+    shelf: 1,
+    at: fixedHour,
+    count: 20,
+    mode: .rediscover,
+    displayHistory: seenHistory
+)
+assert(rediscovered.allSatisfy { seenHistory[$0.id] == nil },
+       "rediscovery should exhaust unseen books before repeating seen books")
+
+let shortReads = Book.onWidgetShelf(
+    library,
+    shelf: 1,
+    at: fixedHour,
+    count: 20,
+    mode: .shortReads
+)
+assert(shortReads.allSatisfy { $0.pages <= 250 })
+
+let longReads = Book.onWidgetShelf(
+    library,
+    shelf: 1,
+    at: fixedHour,
+    count: 20,
+    mode: .longReads
+)
+assert(longReads.allSatisfy { $0.pages >= 500 })
+
+let mixedSources = [
+    Book(id: "calibre", title: "Calibre", author: "A", pages: 300,
+         pagesEstimated: false, source: "calibre"),
+    Book(id: "books", title: "Books", author: "B", pages: 300,
+         pagesEstimated: false, source: "books")
+]
+let calibreOnly = Book.onWidgetShelf(
+    mixedSources,
+    shelf: 1,
+    at: fixedHour,
+    mode: .calibre
+)
+assert(calibreOnly.allSatisfy { $0.source == "calibre" })
+
 // A small widget is too narrow for a flat pile.
 let narrow = ShelfView.layout(library, rows: 1, width: 150, spineHeight: 90)[0]
 assert(!narrow.contains { if case .stack = $0 { true } else { false } })

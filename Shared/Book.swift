@@ -65,13 +65,46 @@ extension Book {
     /// The exact hourly draw used by both a configured widget and its matching
     /// page in the host app.
     static func onWidgetShelf(_ library: [Book], shelf: Int, at date: Date = .now,
-                              count: Int = 60, variation: Int = 0) -> [Book] {
+                              count: Int = 60, variation: Int = 0,
+                              mode: ShelfMode = .rediscover,
+                              displayHistory: [String: TimeInterval] = [:]) -> [Book] {
         guard !library.isEmpty else { return [] }
         let hourSeed = UInt64(date.timeIntervalSince1970 / 3600)
         let shelfSeed = UInt64(max(1, shelf)) &* 0x9E37_79B9_7F4A_7C15
         let variationSeed = UInt64(bitPattern: Int64(variation)) &* 0xD1B5_4A32_D192_ED03
-        var rng = SeededRNG(seed: hourSeed ^ shelfSeed ^ variationSeed ^ fnv1a("woodwork-widget"))
-        return Array(library.shuffled(using: &rng).prefix(max(1, count)))
+        let modeSeed = fnv1a(mode.rawValue)
+        var rng = SeededRNG(
+            seed: hourSeed ^ shelfSeed ^ variationSeed ^ modeSeed ^ fnv1a("woodwork-widget")
+        )
+
+        let filtered: [Book]
+        switch mode {
+        case .rediscover, .surprise:
+            filtered = library
+        case .shortReads:
+            filtered = library.filter { $0.pages <= 250 }
+        case .longReads:
+            filtered = library.filter { $0.pages >= 500 }
+        case .calibre:
+            filtered = library.filter { $0.source?.lowercased() == "calibre" }
+        }
+        let candidates = filtered.isEmpty ? library : filtered
+
+        if mode == .rediscover {
+            let unseen = candidates
+                .filter { displayHistory[$0.id] == nil }
+                .shuffled(using: &rng)
+            let seen = candidates
+                .filter { displayHistory[$0.id] != nil }
+                .sorted {
+                    let left = displayHistory[$0.id] ?? 0
+                    let right = displayHistory[$1.id] ?? 0
+                    return left == right ? $0.id < $1.id : left < right
+                }
+            return Array((unseen + seen).prefix(max(1, count)))
+        }
+
+        return Array(candidates.shuffled(using: &rng).prefix(max(1, count)))
     }
 }
 
@@ -313,6 +346,36 @@ enum ShelfTheme: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum ShelfMode: String, CaseIterable, Codable, Identifiable {
+    case rediscover
+    case surprise
+    case shortReads
+    case longReads
+    case calibre
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .rediscover: "Rediscover"
+        case .surprise: "Surprise Me"
+        case .shortReads: "Short Reads"
+        case .longReads: "Long Reads"
+        case .calibre: "Calibre Only"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .rediscover: "Favors books your widgets have shown least recently"
+        case .surprise: "Draws freely from your complete library"
+        case .shortReads: "Keeps the shelf to books under 250 pages"
+        case .longReads: "Surfaces books with at least 500 pages"
+        case .calibre: "Uses books synced from your Calibre library"
+        }
+    }
+}
+
 enum ShelfLayoutVariant: Int, CaseIterable, Codable, Identifiable {
     case balanced
     case stacked
@@ -340,6 +403,7 @@ enum ShelfLayoutVariant: Int, CaseIterable, Codable, Identifiable {
 enum ShelfSettings {
     private static let themeKey = "shelfTheme"
     private static let shelfThemePrefix = "shelfTheme."
+    private static let shelfModePrefix = "shelfMode."
     private static let layoutKey = "shelfLayoutOptions"
     private static let demoKey = "showDemoBooks"
 
@@ -366,6 +430,19 @@ enum ShelfSettings {
             .set(theme.rawValue, forKey: shelfThemePrefix + String(max(1, shelf)))
     }
 
+    static func loadMode(for shelf: Int) -> ShelfMode {
+        guard let raw = UserDefaults(suiteName: Library.appGroup)?
+            .string(forKey: shelfModePrefix + String(max(1, shelf))) else {
+            return .rediscover
+        }
+        return ShelfMode(rawValue: raw) ?? .rediscover
+    }
+
+    static func saveMode(_ mode: ShelfMode, for shelf: Int) {
+        UserDefaults(suiteName: Library.appGroup)?
+            .set(mode.rawValue, forKey: shelfModePrefix + String(max(1, shelf)))
+    }
+
     static func loadLayoutOptions() -> ShelfLayoutOptions {
         guard let defaults = UserDefaults(suiteName: Library.appGroup),
               let data = defaults.data(forKey: layoutKey),
@@ -387,6 +464,7 @@ enum WidgetShelfRegistry {
     private static let variationPrefix = "widgetShelf.variation."
     private static let suppressedKey = "widgetShelf.suppressed"
     private static let displayedBooksPrefix = "widgetShelf.displayedBooks."
+    private static let displayHistoryPrefix = "widgetShelf.displayHistory."
     private static let retention: TimeInterval = 14 * 24 * 60 * 60
 
     static func register(shelf: Int, at date: Date = .now) {
@@ -423,10 +501,26 @@ enum WidgetShelfRegistry {
         defaults.set(suppressed.sorted(), forKey: suppressedKey)
     }
 
-    static func recordDisplayedBooks(_ books: [Book], shelf: Int) {
+    static func recordDisplayedBooks(_ books: [Book], shelf: Int, at date: Date = .now) {
         guard shelfRange.contains(shelf),
               let defaults = UserDefaults(suiteName: Library.appGroup) else { return }
         defaults.set(books.map(\.id), forKey: displayedBooksPrefix + String(shelf))
+        var history = displayHistory(shelf: shelf)
+        for book in books {
+            history[book.id] = date.timeIntervalSince1970
+        }
+        defaults.set(history, forKey: displayHistoryPrefix + String(shelf))
+    }
+
+    static func displayHistory(shelf: Int) -> [String: TimeInterval] {
+        guard shelfRange.contains(shelf),
+              let values = UserDefaults(suiteName: Library.appGroup)?
+                .dictionary(forKey: displayHistoryPrefix + String(shelf)) else { return [:] }
+        return values.reduce(into: [:]) { result, pair in
+            if let value = pair.value as? NSNumber {
+                result[pair.key] = value.doubleValue
+            }
+        }
     }
 
     static func displayedBooks(from library: [Book], shelf: Int) -> [Book]? {

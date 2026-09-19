@@ -19,6 +19,11 @@ struct ContentView: View {
             ($0, ShelfSettings.loadTheme(for: $0))
         }
     )
+    @State private var shelfModes = Dictionary(
+        uniqueKeysWithValues: WidgetShelfRegistry.shelfRange.map {
+            ($0, ShelfSettings.loadMode(for: $0))
+        }
+    )
     @State private var widgetShelves: [Int] = []
     @State private var widgetFamilies: [Int: WidgetFamily] = [:]
     @State private var widgetDisplayRevision = 0
@@ -47,6 +52,7 @@ struct ContentView: View {
 
                 widgetPager
 
+                discoveryCard
                 themeCard
                 shelfNowCard
                 demoCard
@@ -127,6 +133,21 @@ struct ContentView: View {
         )
     }
 
+    private var selectedMode: ShelfMode {
+        shelfModes[selectedShelf] ?? .rediscover
+    }
+
+    private var selectedModeBinding: Binding<ShelfMode> {
+        Binding(
+            get: { selectedMode },
+            set: { newMode in
+                shelfModes[selectedShelf] = newMode
+                ShelfSettings.saveMode(newMode, for: selectedShelf)
+                reshuffleSelectedShelf(message: "Shelf \(selectedShelf) now uses \(newMode.label).")
+            }
+        )
+    }
+
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             Text("WoodWork")
@@ -177,6 +198,45 @@ struct ContentView: View {
         .background(panelBackground)
     }
 
+    private var discoveryCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("Shelf \(selectedShelf) Selection")
+                .font(.headline)
+
+            Menu {
+                Picker("Selection", selection: selectedModeBinding) {
+                    ForEach(ShelfMode.allCases) { option in
+                        Text(option.label).tag(option)
+                    }
+                }
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(selectedMode.label)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                        Text(selectedMode.subtitle)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.leading)
+                    }
+                    Spacer()
+                    Image(systemName: "arrow.triangle.2.circlepath")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 13)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color.white.opacity(0.92))
+                )
+            }
+        }
+        .padding(18)
+        .background(panelBackground)
+    }
+
     private var widgetPager: some View {
         VStack(spacing: 11) {
             TabView(selection: $selectedShelf) {
@@ -192,7 +252,7 @@ struct ContentView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Widget Shelf \(selectedShelf)")
                         .font(.subheadline.weight(.semibold))
-                    Text(ShelfLayoutVariant.forShelf(selectedShelf).label + " layout")
+                    Text(ShelfLayoutVariant.forShelf(selectedShelf).label + " · " + selectedMode.label)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -581,19 +641,22 @@ struct ContentView: View {
         }
     }
 
-    private func reshuffleSelectedShelf() {
+    private func reshuffleSelectedShelf(message customMessage: String? = nil) {
         shelfVariations[selectedShelf] = WidgetShelfRegistry.reshuffle(shelf: selectedShelf)
         let displayed = Book.onWidgetShelf(
             books,
             shelf: selectedShelf,
             count: 60,
-            variation: shelfVariations[selectedShelf] ?? 0
+            variation: shelfVariations[selectedShelf] ?? 0,
+            mode: selectedMode,
+            displayHistory: WidgetShelfRegistry.displayHistory(shelf: selectedShelf)
         )
         WidgetShelfRegistry.recordDisplayedBooks(displayed, shelf: selectedShelf)
         WidgetShelfRegistry.synchronizeSharedState()
         widgetDisplayRevision &+= 1
         WidgetCenter.shared.reloadAllTimelines()
-        message = "Shuffled Widget Shelf \(selectedShelf). Home Screen update requested."
+        message = customMessage
+            ?? "Shuffled Widget Shelf \(selectedShelf). Home Screen update requested."
     }
 
     private func widgetBooks(for shelf: Int) -> [Book] {
@@ -604,7 +667,9 @@ struct ContentView: View {
             books,
             shelf: shelf,
             count: 60,
-            variation: shelfVariations[shelf] ?? 0
+            variation: shelfVariations[shelf] ?? 0,
+            mode: shelfModes[shelf] ?? .rediscover,
+            displayHistory: WidgetShelfRegistry.displayHistory(shelf: shelf)
         )
     }
 
