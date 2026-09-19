@@ -416,7 +416,7 @@
 				INFOPLIST_FILE = Bookshelf/Info.plist;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -446,7 +446,7 @@
 				INFOPLIST_FILE = Bookshelf/Info.plist;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -473,7 +473,7 @@
 				CODE_SIGN_ENTITLEMENTS = BookshelfWidget/BookshelfWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BookshelfWidget/Info.plist;
@@ -499,7 +499,7 @@
 				CODE_SIGN_ENTITLEMENTS = BookshelfWidget/BookshelfWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = BookshelfWidget/Info.plist;
@@ -524,7 +524,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				ENABLE_APP_SANDBOX = YES;
 				CODE_SIGN_ENTITLEMENTS = BookshelfScanner/BookshelfScanner.entitlements;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -550,7 +550,7 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 6BZ5M39S4D;
-				CURRENT_PROJECT_VERSION = 7;
+				CURRENT_PROJECT_VERSION = 8;
 				ENABLE_APP_SANDBOX = YES;
 				CODE_SIGN_ENTITLEMENTS = BookshelfScanner/BookshelfScanner.entitlements;
 				ENABLE_HARDENED_RUNTIME = YES;

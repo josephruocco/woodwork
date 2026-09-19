@@ -1,9 +1,9 @@
 # WoodWork
 
 An iPhone home screen widget that draws your ebook library as a real bookshelf —
-**spine thickness set by each book's actual page count**. It shows a random
-handful at a time and reshuffles every hour, so you keep catching sight of books
-you forgot you owned. Pulling them out of the woodwork.
+**spine thickness set by each book's actual page count**. Its rediscovery mode
+remembers what each shelf has shown, then brings overlooked books back into view.
+Pulling them out of the woodwork.
 
 Tap the widget and the app lists exactly what's currently on the shelf; tap a
 title and it opens in Apple Books or Kindle.
@@ -13,7 +13,7 @@ title and it opens in Apple Books or Kindle.
 | Target | Platform | Job |
 |---|---|---|
 | `BookshelfScanner` | macOS | Reads the local library, resolves page counts, exports `books.json` |
-| `Bookshelf` | iOS | Host app: theme picker, "On Your Shelf" list, library import |
+| `Bookshelf` | iOS | Host app: per-shelf discovery and theme controls, current shelf list, library import |
 | `BookshelfWidgetExtension` | iOS | The widget — small, medium and large |
 
 `Shared/` is compiled into all three, so the Mac app previews exactly what the

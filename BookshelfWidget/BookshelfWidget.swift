@@ -111,7 +111,7 @@ struct BookshelfWidget: Widget {
             BookshelfWidgetView(entry: entry)
         }
         .configurationDisplayName("WoodWork")
-        .description("A random handful of your library, on a shelf. Refreshes every hour.")
+        .description("Rediscover your own library through shelves that evolve throughout the day.")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
         .contentMarginsDisabled()
     }
