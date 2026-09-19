@@ -19,7 +19,7 @@ struct Provider: AppIntentTimelineProvider {
         ShelfEntry(
             date: .now,
             books: .samples,
-            theme: ShelfSettings.loadTheme(),
+            theme: ShelfSettings.loadTheme(for: 1),
             shelf: 1,
             layoutVariant: .balanced
         )
@@ -76,7 +76,7 @@ struct Provider: AppIntentTimelineProvider {
         return ShelfEntry(
             date: date,
             books: displayed,
-            theme: ShelfSettings.loadTheme(),
+            theme: ShelfSettings.loadTheme(for: shelf),
             shelf: shelf,
             layoutVariant: .forShelf(shelf)
         )

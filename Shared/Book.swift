@@ -339,6 +339,7 @@ enum ShelfLayoutVariant: Int, CaseIterable, Codable, Identifiable {
 
 enum ShelfSettings {
     private static let themeKey = "shelfTheme"
+    private static let shelfThemePrefix = "shelfTheme."
     private static let layoutKey = "shelfLayoutOptions"
     private static let demoKey = "showDemoBooks"
 
@@ -353,17 +354,16 @@ enum ShelfSettings {
         set { UserDefaults(suiteName: Library.appGroup)?.set(newValue, forKey: demoKey) }
     }
 
-    static func loadTheme() -> ShelfTheme {
-        guard let defaults = UserDefaults(suiteName: Library.appGroup),
-              let raw = defaults.string(forKey: themeKey),
-              let theme = ShelfTheme(rawValue: raw) else {
-            return .classic
-        }
-        return theme
+    static func loadTheme(for shelf: Int = 1) -> ShelfTheme {
+        guard let defaults = UserDefaults(suiteName: Library.appGroup) else { return .classic }
+        let shelfKey = shelfThemePrefix + String(max(1, shelf))
+        let raw = defaults.string(forKey: shelfKey) ?? defaults.string(forKey: themeKey)
+        return raw.flatMap(ShelfTheme.init(rawValue:)) ?? .classic
     }
 
-    static func saveTheme(_ theme: ShelfTheme) {
-        UserDefaults(suiteName: Library.appGroup)?.set(theme.rawValue, forKey: themeKey)
+    static func saveTheme(_ theme: ShelfTheme, for shelf: Int = 1) {
+        UserDefaults(suiteName: Library.appGroup)?
+            .set(theme.rawValue, forKey: shelfThemePrefix + String(max(1, shelf)))
     }
 
     static func loadLayoutOptions() -> ShelfLayoutOptions {

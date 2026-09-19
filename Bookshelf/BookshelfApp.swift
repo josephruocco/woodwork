@@ -14,7 +14,11 @@ struct ContentView: View {
     @Environment(\.openURL) private var openURL
     @StateObject private var calibreDiscovery = CalibreDiscovery()
     @State private var books = Library.load()
-    @State private var theme = ShelfSettings.loadTheme()
+    @State private var shelfThemes = Dictionary(
+        uniqueKeysWithValues: WidgetShelfRegistry.shelfRange.map {
+            ($0, ShelfSettings.loadTheme(for: $0))
+        }
+    )
     @State private var widgetShelves: [Int] = []
     @State private var widgetFamilies: [Int: WidgetFamily] = [:]
     @State private var widgetDisplayRevision = 0
@@ -81,10 +85,6 @@ struct ContentView: View {
                 Task { await syncLibrary() }
             }
         }
-        .onChange(of: theme) { _, newTheme in
-            ShelfSettings.saveTheme(newTheme)
-            WidgetCenter.shared.reloadAllTimelines()
-        }
         .onChange(of: showDemo) { _, on in
             ShelfSettings.showDemoBooks = on
             books = Library.load()
@@ -111,6 +111,22 @@ struct ContentView: View {
         Array(selectedShelfBooks.prefix(24))
     }
 
+    private var selectedTheme: ShelfTheme {
+        shelfThemes[selectedShelf] ?? .classic
+    }
+
+    private var selectedThemeBinding: Binding<ShelfTheme> {
+        Binding(
+            get: { selectedTheme },
+            set: { newTheme in
+                shelfThemes[selectedShelf] = newTheme
+                ShelfSettings.saveTheme(newTheme, for: selectedShelf)
+                widgetDisplayRevision &+= 1
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        )
+    }
+
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             Text("WoodWork")
@@ -125,11 +141,11 @@ struct ContentView: View {
 
     private var themeCard: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("Mood")
+            Text("Shelf \(selectedShelf) Mood")
                 .font(.headline)
 
             Menu {
-                Picker("Theme", selection: $theme) {
+                Picker("Theme", selection: selectedThemeBinding) {
                     ForEach(ShelfTheme.allCases) { option in
                         Text(option.label).tag(option)
                     }
@@ -137,10 +153,10 @@ struct ContentView: View {
             } label: {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(theme.label)
+                        Text(selectedTheme.label)
                             .font(.headline)
                             .foregroundStyle(.primary)
-                        Text(theme.subtitle)
+                        Text(selectedTheme.subtitle)
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -224,12 +240,13 @@ struct ContentView: View {
         GeometryReader { geo in
             let family = widgetFamilies[shelf] ?? .systemLarge
             let previewHeight = min(350, geo.size.width / widgetAspectRatio(family))
+            let shelfTheme = shelfThemes[shelf] ?? .classic
 
             VStack {
                 Spacer(minLength: 0)
                 ShelfView(
                     books: widgetBooks(for: shelf),
-                    theme: theme,
+                    theme: shelfTheme,
                     layoutVariant: .forShelf(shelf),
                     preferredRows: ShelfLayoutVariant.rowCount(forShelf: shelf)
                 )
@@ -238,9 +255,9 @@ struct ContentView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(.white.opacity(theme == .artsy ? 0.18 : 0.10), lineWidth: 1)
+                        .stroke(.white.opacity(shelfTheme == .artsy ? 0.18 : 0.10), lineWidth: 1)
                 )
-                .shadow(color: .black.opacity(theme == .artsy ? 0.10 : 0.14), radius: 18, y: 10)
+                .shadow(color: .black.opacity(shelfTheme == .artsy ? 0.10 : 0.14), radius: 18, y: 10)
                 Spacer(minLength: 0)
             }
         }
