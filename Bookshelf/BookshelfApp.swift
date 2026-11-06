@@ -12,6 +12,7 @@ struct BookshelfApp: App {
 struct ContentView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
+    @Environment(\.colorScheme) private var colorScheme
     @StateObject private var calibreDiscovery = CalibreDiscovery()
     @State private var books = Library.load()
     @State private var shelfThemes = Dictionary(
@@ -152,7 +153,7 @@ struct ContentView: View {
         HStack(alignment: .firstTextBaseline) {
             Text("WoodWork")
                 .font(.system(size: 36, weight: .light, design: .serif))
-                .foregroundStyle(Color(red: 0.20, green: 0.16, blue: 0.13))
+                .foregroundStyle(brandTitle)
             Spacer()
             Text("\(books.count) books")
                 .font(.caption.weight(.medium))
@@ -190,7 +191,7 @@ struct ContentView: View {
                 .padding(.vertical, 13)
                 .background(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.white.opacity(0.92))
+                        .fill(insetSurface)
                 )
             }
         }
@@ -229,7 +230,7 @@ struct ContentView: View {
                 .padding(.vertical, 13)
                 .background(
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.white.opacity(0.92))
+                        .fill(insetSurface)
                 )
             }
         }
@@ -291,7 +292,7 @@ struct ContentView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(Color(red: 0.45, green: 0.29, blue: 0.18))
+                .tint(brandAccent)
             }
         }
     }
@@ -350,7 +351,7 @@ struct ContentView: View {
             }
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color.white.opacity(0.90))
+                    .fill(insetSurface)
             )
         }
         .padding(18)
@@ -370,7 +371,7 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .tint(Color(red: 0.45, green: 0.29, blue: 0.18))
+            .tint(brandAccent)
         }
         .padding(18)
         .background(panelBackground)
@@ -380,7 +381,7 @@ struct ContentView: View {
         HStack {
             Button("Import") { importing = true }
                 .buttonStyle(.borderedProminent)
-                .tint(Color(red: 0.45, green: 0.29, blue: 0.18))
+                .tint(brandAccent)
 
             Spacer()
 
@@ -402,7 +403,7 @@ struct ContentView: View {
             )
         }
         .font(.footnote.weight(.medium))
-        .foregroundStyle(Color(red: 0.45, green: 0.29, blue: 0.18))
+        .foregroundStyle(brandAccent)
         .frame(maxWidth: .infinity)
         .padding(.vertical, 6)
     }
@@ -414,7 +415,7 @@ struct ContentView: View {
                     .font(.title3)
                     .foregroundStyle(calibreServerReachable == false
                                      ? Color.red
-                                     : Color(red: 0.45, green: 0.29, blue: 0.18))
+                                     : brandAccent)
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Calibre Content Server")
@@ -824,22 +825,45 @@ struct ContentView: View {
 
     private var appBackground: some View {
         LinearGradient(
-            colors: [
-                Color(red: 0.97, green: 0.95, blue: 0.92),
-                Color(red: 0.92, green: 0.89, blue: 0.84)
-            ],
+            colors: colorScheme == .dark
+                ? [Color(red: 0.10, green: 0.085, blue: 0.075),
+                   Color(red: 0.16, green: 0.13, blue: 0.11)]
+                : [Color(red: 0.97, green: 0.95, blue: 0.92),
+                   Color(red: 0.92, green: 0.89, blue: 0.84)],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
         .ignoresSafeArea()
     }
 
+    private var brandTitle: Color {
+        colorScheme == .dark
+            ? Color(red: 0.94, green: 0.89, blue: 0.82)
+            : Color(red: 0.20, green: 0.16, blue: 0.13)
+    }
+
+    private var brandAccent: Color {
+        colorScheme == .dark
+            ? Color(red: 0.78, green: 0.57, blue: 0.40)
+            : Color(red: 0.45, green: 0.29, blue: 0.18)
+    }
+
+    private var insetSurface: Color {
+        colorScheme == .dark
+            ? Color(red: 0.17, green: 0.145, blue: 0.13).opacity(0.96)
+            : Color.white.opacity(0.92)
+    }
+
     private var panelBackground: some View {
         RoundedRectangle(cornerRadius: 22, style: .continuous)
-            .fill(Color.white.opacity(0.55))
+            .fill(colorScheme == .dark
+                  ? Color(red: 0.13, green: 0.11, blue: 0.10).opacity(0.88)
+                  : Color.white.opacity(0.55))
             .overlay(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(.white.opacity(0.42), lineWidth: 1)
+                    .stroke(colorScheme == .dark
+                            ? Color.white.opacity(0.10)
+                            : Color.white.opacity(0.42), lineWidth: 1)
             )
     }
 }
