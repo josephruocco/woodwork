@@ -9,10 +9,10 @@ struct Book: Codable, Identifiable, Hashable {
     var pages: Int
     /// True when `pages` is a fallback guess rather than a real count.
     var pagesEstimated: Bool
-    /// Apple Books asset id or Kindle ASIN. Optional so libraries exported
-    /// before deep links existed still decode.
+    /// Apple Books asset id, Kindle ASIN, or Calibre Content Server URL.
+    /// Optional so libraries exported before deep links existed still decode.
     var assetID: String? = nil
-    /// "books" or "kindle" — decides which app a tap opens.
+    /// "books", "kindle", or "calibre" — decides where a tap opens.
     var source: String? = nil
 
     var shortTitle: String {
@@ -43,11 +43,45 @@ extension Book {
     /// directly — WidgetKit hands a `Link` URL to the containing app — so this
     /// is what the app forwards to once it receives the tap.
     var readerURL: URL? {
-        guard let assetID, !assetID.isEmpty else { return nil }
-        switch source {
-        case "kindle": return URL(string: "kindle://book?action=open&asin=\(assetID)")
-        case "calibre": return URL(string: assetID)
-        default: return URL(string: "ibooks://assetid/\(assetID)")
+        guard let rawAssetID = assetID?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !rawAssetID.isEmpty else { return nil }
+
+        switch source?.lowercased() {
+        case "kindle":
+            var components = URLComponents()
+            components.scheme = "kindle"
+            components.host = "book"
+            components.path = "/"
+            components.queryItems = [
+                URLQueryItem(name: "action", value: "open"),
+                URLQueryItem(name: "asin", value: rawAssetID)
+            ]
+            return components.url
+        case "calibre":
+            guard let url = URL(string: rawAssetID),
+                  let scheme = url.scheme?.lowercased(),
+                  scheme == "http" || scheme == "https" else { return nil }
+            return url
+        case "books", nil:
+            // A nil source is a legacy Apple Books import from before source
+            // identifiers were included in the scanner export.
+            guard let encodedID = rawAssetID.addingPercentEncoding(
+                withAllowedCharacters: .urlPathAllowed
+            ) else { return nil }
+            return URL(string: "ibooks://assetid/\(encodedID)")
+        default:
+            return nil
+        }
+    }
+
+    var readerOpenFailureMessage: String {
+        switch source?.lowercased() {
+        case "kindle":
+            return "Kindle couldn't open this title. Make sure Kindle is installed and the book is in your Kindle library."
+        case "calibre":
+            return "The Calibre link couldn't open. Make sure its Content Server is running and reachable from this iPhone."
+        default:
+            return "Apple Books couldn't open this title. Open it once in Books, then sync your library again."
         }
     }
 

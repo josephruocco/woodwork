@@ -343,7 +343,9 @@ struct ContentView: View {
 
             VStack(spacing: 0) {
                 ForEach(featured) { book in
-                    BookRow(book: book)
+                    BookRow(book: book) {
+                        openBook(book)
+                    }
                     if book.id != featured.last?.id {
                         Divider().padding(.leading, 34)
                     }
@@ -689,11 +691,23 @@ struct ContentView: View {
 
     private func openRandomBook() {
         let openable = Library.storedBooks().filter { $0.readerURL != nil }
-        guard let book = openable.randomElement(), let url = book.readerURL else {
+        guard let book = openable.randomElement() else {
             message = "No imported books have a link that WoodWork can open yet."
             return
         }
-        openURL(url)
+        openBook(book)
+    }
+
+    private func openBook(_ book: Book) {
+        guard let url = book.readerURL else {
+            message = "This book doesn't include a link to its reading app. Sync or import the library again."
+            return
+        }
+        openURL(url) { accepted in
+            if !accepted {
+                message = book.readerOpenFailureMessage
+            }
+        }
     }
 
     /// Pick up whatever the Mac scanner last published. Quiet on failure —
@@ -870,12 +884,10 @@ struct ContentView: View {
 
 private struct BookRow: View {
     let book: Book
-    @Environment(\.openURL) private var openURL
+    let open: () -> Void
 
     var body: some View {
-        Button {
-            if let url = book.readerURL { openURL(url) }
-        } label: {
+        Button(action: open) {
             HStack(spacing: 12) {
                 RoundedRectangle(cornerRadius: 1, style: .continuous)
                     .fill(Color(red: book.cloth.r, green: book.cloth.g, blue: book.cloth.b))

@@ -98,7 +98,8 @@ Then replace it with your own export from the scanner.
   entitlement first when the widget ignores a setting.
 - **Deep links.** A widget can't launch another app: WidgetKit routes `Link` URLs
   to the containing app. So taps go through `bookshelf://`, and the app forwards
-  to `ibooks://assetid/…` or `kindle://book?action=open&asin=…`.
+  to `ibooks://assetid/…`, `kindle://book/?action=open&asin=…`, or a Calibre
+  Content Server book-details URL. The app reports when iOS rejects a link.
 - **`ArtSource/` is not shipped.** It holds the full-size source images for the
   spine textures; only the cropped `Resources/ThemeAssets/**/final` files go into
   the app. They were once wired into the bundle by accident, which put 74 MB into

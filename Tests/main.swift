@@ -16,6 +16,25 @@ assert(book("x", 300).spineWidth == book("y", 300).spineWidth)
 // per-process-seeded Hasher.
 assert(fnv1a("Moby-Dick") == 10_498_371_713_199_089_330)
 
+// Imported books open in the app that owns them. IDs are trimmed and query
+// values are encoded so malformed scanner metadata cannot produce a bad URL.
+let appleBook = Book(id: "apple", title: "Apple", author: "A", pages: 200,
+                     pagesEstimated: false, assetID: " 12345 ", source: "books")
+assert(appleBook.readerURL?.absoluteString == "ibooks://assetid/12345")
+
+let kindleBook = Book(id: "kindle", title: "Kindle", author: "A", pages: 200,
+                      pagesEstimated: false, assetID: " B000SEH13C ", source: "KINDLE")
+assert(kindleBook.readerURL?.absoluteString == "kindle://book/?action=open&asin=B000SEH13C")
+
+let calibreURL = "http://mac.local:8080/#book_id=7&library_id=Library&panel=book_details"
+let calibreBook = Book(id: "calibre", title: "Calibre", author: "A", pages: 200,
+                       pagesEstimated: false, assetID: calibreURL, source: "calibre")
+assert(calibreBook.readerURL?.absoluteString == calibreURL)
+assert(Book(id: "bad", title: "Bad", author: "A", pages: 200,
+            pagesEstimated: false, assetID: "file:///tmp/book.epub", source: "calibre").readerURL == nil)
+assert(Book(id: "unknown", title: "Unknown", author: "A", pages: 200,
+            pagesEstimated: false, assetID: "123", source: "other").readerURL == nil)
+
 let width: CGFloat = 320
 let spineHeight: CGFloat = 106
 let library = (0..<200).map { book("Book \($0)", 100 + $0 * 7) }

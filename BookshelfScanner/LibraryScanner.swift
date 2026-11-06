@@ -109,7 +109,8 @@ final class LibraryScanner: ObservableObject {
           AND (ZISHIDDEN IS NULL OR ZISHIDDEN = 0)
         """
 
-    /// ZBOOKID is the ASIN, which is what `kindle://book?asin=…` wants.
+    /// ZBOOKID is the ASIN, which is what
+    /// `kindle://book/?action=open&asin=…` wants.
     private static let kindleQuery = """
         SELECT ZDISPLAYTITLE, ZDISPLAYAUTHOR, 0, ZBOOKID FROM ZBOOK
         WHERE ZDISPLAYTITLE IS NOT NULL AND (ZRAWISDICTIONARY IS NULL OR ZRAWISDICTIONARY = 0)
