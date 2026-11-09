@@ -386,6 +386,7 @@ enum Library {
             winner.pages = other.pages
             winner.pagesEstimated = false
         }
+        if winner.artwork == nil { winner.artwork = other.artwork }
         return winner
     }
 

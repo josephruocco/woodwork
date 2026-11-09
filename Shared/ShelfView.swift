@@ -614,18 +614,29 @@ private struct ItemView: View {
                 // Give the title more of the spine and let it scale harder
                 // before truncation so narrow books still read clearly.
                 let run = length * titleRunFraction
-                Text(displayTitle(for: book))
-                    .font(titleFont(for: book, thickness: thickness))
-                    .kerning(titleKerning(for: book))
-                    .foregroundStyle(ink.opacity(theme == .artsy ? 0.96 : 0.92))
-                    .lineLimit(1)
-                    .minimumScaleFactor(minimumScaleFactor(for: book))
-                    .allowsTightening(true)
-                    .truncationMode(.middle)
-                    .frame(width: run)
-                    .rotationEffect(.degrees(vertical ? 90 : 0))
-                    .frame(width: vertical ? thickness : length,
-                           height: vertical ? run : thickness)
+                if derived?.hasTitleCrop == true,
+                   let titleImage = ArtworkAssetImage.image(for: book, kind: .title) {
+                    titleImage
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: run, height: max(5, thickness * 0.72))
+                        .rotationEffect(.degrees(vertical ? 90 : 0))
+                        .frame(width: vertical ? thickness : length,
+                               height: vertical ? run : thickness)
+                } else {
+                    Text(displayTitle(for: book))
+                        .font(titleFont(for: book, thickness: thickness))
+                        .kerning(titleKerning(for: book))
+                        .foregroundStyle(ink.opacity(theme == .artsy ? 0.96 : 0.92))
+                        .lineLimit(1)
+                        .minimumScaleFactor(minimumScaleFactor(for: book))
+                        .allowsTightening(true)
+                        .truncationMode(.middle)
+                        .frame(width: run)
+                        .rotationEffect(.degrees(vertical ? 90 : 0))
+                        .frame(width: vertical ? thickness : length,
+                               height: vertical ? run : thickness)
+                }
             }
         }
         .frame(width: vertical ? thickness : length,
@@ -909,45 +920,51 @@ private struct FeaturedBookView: View {
             let ink = derived?.inkColor ?? (cloth.isLight
                 ? Color(red: 0.16, green: 0.12, blue: 0.09)
                 : Color(red: 0.94, green: 0.88, blue: 0.72))
+            let actualCover = derived?.hasCover == true
+                ? ArtworkAssetImage.image(for: book, kind: .cover)
+                : nil
 
             ZStack {
-                realisticCoverTexture(book: book)
-                    .colorMultiply(base)
-                    .overlay((derived?.accentColor ?? .clear).opacity(derived == nil ? 0 : 0.18))
-                    .overlay(
-                        LinearGradient(
-                            colors: [.white.opacity(0.10), .clear, .black.opacity(0.16)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                if let cover = actualCover {
+                    cover.resizable().aspectRatio(contentMode: .fill)
+                } else {
+                    realisticCoverTexture(book: book)
+                        .colorMultiply(base)
+                        .overlay((derived?.accentColor ?? .clear).opacity(derived == nil ? 0 : 0.18))
+                        .overlay(
+                            LinearGradient(
+                                colors: [.white.opacity(0.10), .clear, .black.opacity(0.16)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
-                    )
+                    VStack(spacing: max(3, geo.size.height * 0.035)) {
+                        Text(book.author.uppercased())
+                            .font(.system(size: max(5, geo.size.width * 0.085), weight: .medium, design: .serif))
+                            .kerning(0.45)
+                            .lineLimit(2)
 
-                VStack(spacing: max(3, geo.size.height * 0.035)) {
-                    Text(book.author.uppercased())
-                        .font(.system(size: max(5, geo.size.width * 0.085), weight: .medium, design: .serif))
-                        .kerning(0.45)
-                        .lineLimit(2)
+                        Rectangle()
+                            .fill(ink.opacity(0.40))
+                            .frame(width: geo.size.width * 0.44, height: 0.6)
 
-                    Rectangle()
-                        .fill(ink.opacity(0.40))
-                        .frame(width: geo.size.width * 0.44, height: 0.6)
+                        Text(book.spineTitle)
+                            .font(coverTitleFont(size: max(8, geo.size.width * 0.16)))
+                            .lineLimit(4)
+                            .minimumScaleFactor(0.55)
+                            .allowsTightening(true)
 
-                    Text(book.spineTitle)
-                        .font(coverTitleFont(size: max(8, geo.size.width * 0.16)))
-                        .lineLimit(4)
-                        .minimumScaleFactor(0.55)
-                        .allowsTightening(true)
+                        Spacer(minLength: 0)
 
-                    Spacer(minLength: 0)
-
-                    Image(systemName: "leaf")
-                        .font(.system(size: max(6, geo.size.width * 0.10), weight: .light))
-                        .opacity(0.58)
+                        Image(systemName: "leaf")
+                            .font(.system(size: max(6, geo.size.width * 0.10), weight: .light))
+                            .opacity(0.58)
+                    }
+                    .foregroundStyle(ink)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, geo.size.width * 0.10)
+                    .padding(.vertical, geo.size.height * 0.08)
                 }
-                .foregroundStyle(ink)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, geo.size.width * 0.10)
-                .padding(.vertical, geo.size.height * 0.08)
             }
             .clipShape(RoundedRectangle(cornerRadius: max(1.5, geo.size.width * 0.025), style: .continuous))
             .overlay(
@@ -986,6 +1003,22 @@ private struct FeaturedBookView: View {
         } else {
             Color.white.opacity(0.55)
         }
+    }
+}
+
+private enum ArtworkAssetImage {
+    static func image(for book: Book, kind: ArtworkStore.Kind) -> Image? {
+        guard let key = book.artwork?.key,
+              let url = ArtworkStore.localURL(key: key, kind: kind) else { return nil }
+        #if canImport(UIKit)
+        guard let image = UIImage(contentsOfFile: url.path) else { return nil }
+        return Image(uiImage: image)
+        #elseif canImport(AppKit)
+        guard let image = NSImage(contentsOf: url) else { return nil }
+        return Image(nsImage: image)
+        #else
+        return nil
+        #endif
     }
 }
 

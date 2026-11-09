@@ -16,7 +16,7 @@ struct ScannerView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            ShelfView(books: preview)
+            ShelfView(books: preview, artworkMode: .originalInspired)
                 .frame(height: 236)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
 
@@ -30,7 +30,7 @@ struct ScannerView: View {
                     .keyboardShortcut(.defaultAction)
 
                 if scanner.needsFolderPick {
-                    Button("Choose BKLibrary Folder…", action: pickFolder)
+                    Button("Choose Apple Books Data Folder…", action: pickFolder)
                 }
 
                 Spacer()
@@ -55,15 +55,15 @@ struct ScannerView: View {
     private func pickFolder() {
         let panel = NSOpenPanel()
         panel.canChooseDirectories = true
-        panel.canChooseFiles = true
-        panel.message = "Select the BKLibrary folder (or its .sqlite file) inside the Apple Books container."
+        panel.canChooseFiles = false
+        panel.message = "Select the Apple Books Data folder. This grants access to both your library and its cover cache."
         panel.directoryURL = FileManager.default.homeDirectoryForCurrentUser
-            .appending(path: "Library/Containers/com.apple.iBooksX/Data/Documents")
+            .appending(path: "Library/Containers/com.apple.iBooksX")
         guard panel.runModal() == .OK, let picked = panel.url else { return }
         // Remember the grant so the sandbox lets us back in next launch.
         LibraryBookmark.save(picked)
-        guard let db = LibraryScanner.sqliteFile(in: picked) else { return }
-        Task { await scanner.scan(booksDBOverride: db) }
+        guard LibraryScanner.sqliteFile(in: picked) != nil else { return }
+        Task { await scanner.scan(booksDBOverride: picked) }
     }
 
     private func save() {

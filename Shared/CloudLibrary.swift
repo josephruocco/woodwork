@@ -6,6 +6,7 @@ import Foundation
 enum CloudLibrary {
     static let container = "iCloud.com.josephruocco.bookshelf"
     static let filename = "books.json"
+    static let artworkFolder = "Artwork"
 
     /// nil when the user isn't signed into iCloud, or the container hasn't been
     /// provisioned for this build.
@@ -24,8 +25,11 @@ enum CloudLibrary {
 
     // MARK: Writing (the Mac side)
 
-    static func publish(_ books: [Book]) throws {
+    static func publish(_ books: [Book], artworkDirectory: URL? = nil) throws {
         guard let url = fileURL else { throw CloudError.unavailable }
+        if let artworkDirectory {
+            try publishArtwork(from: artworkDirectory)
+        }
         let data = try JSONEncoder().encode(books)
         // Write via NSFileCoordinator so iCloud sees a clean atomic replacement
         // rather than a half-written file.
@@ -37,6 +41,28 @@ enum CloudLibrary {
         }
         if let coordinationError { throw coordinationError }
         if let writeError { throw writeError }
+    }
+
+    private static func publishArtwork(from source: URL) throws {
+        guard let documentsURL else { throw CloudError.unavailable }
+        let destination = documentsURL.appendingPathComponent(artworkFolder, isDirectory: true)
+        try FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        for file in (try? FileManager.default.contentsOfDirectory(
+            at: source, includingPropertiesForKeys: [.isRegularFileKey]
+        )) ?? [] {
+            let target = destination.appendingPathComponent(file.lastPathComponent)
+            var coordinationError: NSError?
+            var copyError: Error?
+            NSFileCoordinator().coordinate(writingItemAt: target, options: .forReplacing,
+                                           error: &coordinationError) { coordinatedTarget in
+                do {
+                    try? FileManager.default.removeItem(at: coordinatedTarget)
+                    try FileManager.default.copyItem(at: file, to: coordinatedTarget)
+                } catch { copyError = error }
+            }
+            if let coordinationError { throw coordinationError }
+            if let copyError { throw copyError }
+        }
     }
 
     // MARK: Reading (the phone side)
@@ -62,6 +88,7 @@ enum CloudLibrary {
             guard let data = try? Data(contentsOf: target) else { return }
             result = try? JSONDecoder().decode([Book].self, from: data)
         }
+        if let books = result { await ArtworkStore.downloadCloudArtwork(for: books, timeout: timeout) }
         return (result?.isEmpty == false) ? result : nil
     }
 
@@ -74,6 +101,77 @@ enum CloudLibrary {
         case unavailable
         var errorDescription: String? {
             "iCloud Drive isn't available. Sign in to iCloud and turn on iCloud Drive."
+        }
+    }
+}
+
+/// Small cover files stay outside books.json. The scanner publishes them to
+/// iCloud; the phone mirrors them into the App Group so the widget can read
+/// them without network access.
+enum ArtworkStore {
+    enum Kind: String, CaseIterable { case cover = "cover.jpg", title = "title.png" }
+
+    static var localDirectory: URL? {
+        if let group = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: Library.appGroup
+        ) {
+            return group.appendingPathComponent("Artwork", isDirectory: true)
+        }
+        #if os(macOS)
+        return URL.applicationSupportDirectory
+            .appending(path: "BookshelfScanner/Artwork", directoryHint: .isDirectory)
+        #else
+        return nil
+        #endif
+    }
+
+    static func filename(key: String, kind: Kind) -> String { "\(key)-\(kind.rawValue)" }
+
+    static func localURL(key: String, kind: Kind) -> URL? {
+        guard let directory = localDirectory else { return nil }
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory.appendingPathComponent(filename(key: key, kind: kind))
+    }
+
+    static func save(_ data: Data, key: String, kind: Kind) throws {
+        guard let url = localURL(key: key, kind: kind) else { throw CocoaError(.fileNoSuchFile) }
+        try data.write(to: url, options: .atomic)
+    }
+
+    static func remove(key: String) {
+        for kind in Kind.allCases {
+            if let url = localURL(key: key, kind: kind) { try? FileManager.default.removeItem(at: url) }
+        }
+    }
+
+    static func downloadCloudArtwork(for books: [Book], timeout: TimeInterval) async {
+        guard let documents = CloudLibrary.documentsURL,
+              let destination = localDirectory else { return }
+        try? FileManager.default.createDirectory(at: destination, withIntermediateDirectories: true)
+        let cloud = documents.appendingPathComponent(CloudLibrary.artworkFolder, isDirectory: true)
+        let deadline = Date().addingTimeInterval(timeout)
+
+        for artwork in books.compactMap(\.artwork) {
+            for kind in Kind.allCases {
+                if kind == .cover && !artwork.hasCover { continue }
+                if kind == .title && !artwork.hasTitleCrop { continue }
+                let name = filename(key: artwork.key, kind: kind)
+                let source = cloud.appendingPathComponent(name)
+                let target = destination.appendingPathComponent(name)
+                if FileManager.default.fileExists(atPath: target.path) { continue }
+                if !FileManager.default.fileExists(atPath: source.path) {
+                    try? FileManager.default.startDownloadingUbiquitousItem(at: source)
+                }
+                while !FileManager.default.fileExists(atPath: source.path), Date() < deadline {
+                    try? await Task.sleep(nanoseconds: 100_000_000)
+                }
+                guard FileManager.default.fileExists(atPath: source.path) else { continue }
+                var coordinationError: NSError?
+                NSFileCoordinator().coordinate(readingItemAt: source, options: [],
+                                               error: &coordinationError) { coordinatedSource in
+                    try? FileManager.default.copyItem(at: coordinatedSource, to: target)
+                }
+            }
         }
     }
 }
