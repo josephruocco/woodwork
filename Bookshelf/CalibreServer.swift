@@ -1,6 +1,10 @@
 import Foundation
 import Combine
 import Security
+import Vision
+import ImageIO
+import UIKit
+import UniformTypeIdentifiers
 
 enum CalibreServerError: LocalizedError {
     case invalidURL
@@ -103,7 +107,41 @@ struct CalibreServerClient {
         }
 
         guard !books.isEmpty else { throw CalibreServerError.emptyLibrary }
+        for chunk in stride(from: 0, to: books.count, by: 6).map({
+            Array($0..<min($0 + 6, books.count))
+        }) {
+            let artwork = await withTaskGroup(of: (Int, BookArtwork?).self) { group in
+                for index in chunk {
+                    let book = books[index]
+                    group.addTask {
+                        (index, await coverArtwork(for: book, libraryID: libraryID))
+                    }
+                }
+                return await group.reduce(into: [(Int, BookArtwork?)]()) { $0.append($1) }
+            }
+            for (index, result) in artwork where result != nil { books[index].artwork = result }
+        }
         return books
+    }
+
+    private func coverArtwork(for book: Book, libraryID: String) async -> BookArtwork? {
+        guard let fragment = URLComponents(string: book.assetID ?? "")?.fragment,
+              let idPart = fragment.split(separator: "&").first(where: { $0.hasPrefix("book_id=") }),
+              let id = Int(idPart.dropFirst("book_id=".count)) else { return nil }
+        let encodedLibrary = libraryID.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
+            ?? libraryID
+        let url = baseURL
+            .appending(path: "get/cover/\(id)/\(encodedLibrary)")
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 20
+        if !username.isEmpty {
+            let credentials = Data("\(username):\(password)".utf8).base64EncodedString()
+            request.setValue("Basic \(credentials)", forHTTPHeaderField: "Authorization")
+        }
+        guard let (data, response) = try? await URLSession.shared.data(for: request),
+              let http = response as? HTTPURLResponse,
+              (200..<300).contains(http.statusCode) else { return nil }
+        return CalibreCoverProcessor.process(data: data, book: book, identifier: "\(libraryID)|\(id)")
     }
 
     private func makeBook(id: Int, libraryID: String, metadata: [String: Any]) -> Book? {
@@ -165,6 +203,98 @@ struct CalibreServerClient {
         } catch {
             throw CalibreServerError.invalidResponse
         }
+    }
+}
+
+private enum CalibreCoverProcessor {
+    static func process(data: Data, book: Book, identifier: String) -> BookArtwork? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let original = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }
+        let key = String(fnv1a("calibre|\(identifier)"), radix: 16)
+        let cover = resized(original, maxWidth: 240) ?? original
+        guard let coverData = encoded(cover, type: UTType.jpeg.identifier as CFString, quality: 0.76),
+              (try? ArtworkStore.save(coverData, key: key, kind: .cover)) != nil else { return nil }
+
+        let primary = averageRGB(original, heightFraction: 1)
+        let accent = averageRGB(original, heightFraction: 0.32)
+        let ink: UInt32 = luminance(primary) > 0.56 ? 0x201A16 : 0xFFF8E8
+        var hasTitle = false
+        if let crop = titleCrop(in: original, title: book.title),
+           let titleData = encoded(resized(crop, maxWidth: 360) ?? crop,
+                                   type: UTType.png.identifier as CFString, quality: 1) {
+            hasTitle = (try? ArtworkStore.save(titleData, key: key, kind: .title)) != nil
+        }
+        return BookArtwork(key: key, primaryRGB: primary, accentRGB: accent,
+                           inkRGB: ink, hasCover: true, hasTitleCrop: hasTitle)
+    }
+
+    private static func resized(_ image: CGImage, maxWidth: Int) -> CGImage? {
+        guard image.width > maxWidth else { return image }
+        let height = max(1, Int(Double(image.height) / Double(image.width) * Double(maxWidth)))
+        guard let context = CGContext(data: nil, width: maxWidth, height: height,
+                                      bitsPerComponent: 8, bytesPerRow: 0,
+                                      space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        else { return nil }
+        context.interpolationQuality = .high
+        context.draw(image, in: CGRect(x: 0, y: 0, width: maxWidth, height: height))
+        return context.makeImage()
+    }
+
+    private static func encoded(_ image: CGImage, type: CFString, quality: Double) -> Data? {
+        let data = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(data, type, 1, nil) else { return nil }
+        CGImageDestinationAddImage(destination, image,
+                                   [kCGImageDestinationLossyCompressionQuality: quality] as CFDictionary)
+        return CGImageDestinationFinalize(destination) ? data as Data : nil
+    }
+
+    private static func averageRGB(_ image: CGImage, heightFraction: Double) -> UInt32 {
+        let height = max(1, Int(Double(image.height) * heightFraction))
+        guard let crop = image.cropping(to: CGRect(x: 0, y: 0, width: image.width, height: height)),
+              let context = CGContext(data: nil, width: 1, height: 1,
+                                      bitsPerComponent: 8, bytesPerRow: 4,
+                                      space: CGColorSpaceCreateDeviceRGB(),
+                                      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        else { return 0x655044 }
+        context.draw(crop, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+        guard let bytes = context.data?.assumingMemoryBound(to: UInt8.self) else { return 0x655044 }
+        return UInt32(bytes[0]) << 16 | UInt32(bytes[1]) << 8 | UInt32(bytes[2])
+    }
+
+    private static func luminance(_ rgb: UInt32) -> Double {
+        0.2126 * Double((rgb >> 16) & 0xff) / 255
+            + 0.7152 * Double((rgb >> 8) & 0xff) / 255
+            + 0.0722 * Double(rgb & 0xff) / 255
+    }
+
+    private static func titleCrop(in image: CGImage, title: String) -> CGImage? {
+        let request = VNRecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.usesLanguageCorrection = true
+        request.minimumTextHeight = 0.025
+        guard (try? VNImageRequestHandler(cgImage: image).perform([request])) != nil else { return nil }
+        let wanted = tokens(title)
+        let matches = (request.results ?? []).filter {
+            guard let text = $0.topCandidates(1).first?.string else { return false }
+            return !wanted.isDisjoint(with: tokens(text))
+        }
+        guard !matches.isEmpty else { return nil }
+        let normalized = matches.map(\.boundingBox).reduce(CGRect.null) { $0.union($1) }
+        let padded = normalized.insetBy(dx: -0.025, dy: -0.025)
+            .intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
+        return image.cropping(to: CGRect(
+            x: padded.minX * CGFloat(image.width),
+            y: (1 - padded.maxY) * CGFloat(image.height),
+            width: padded.width * CGFloat(image.width),
+            height: padded.height * CGFloat(image.height)
+        ).integral)
+    }
+
+    private static func tokens(_ value: String) -> Set<String> {
+        Set(value.lowercased()
+            .components(separatedBy: CharacterSet.alphanumerics.inverted)
+            .filter { $0.count >= 3 })
     }
 }
 
