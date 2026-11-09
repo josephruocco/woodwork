@@ -36,6 +36,8 @@ struct ContentView: View {
     @State private var selectedShelf = 1
     @State private var showDemo = ShelfSettings.showDemoBooks
     @State private var importing = false
+    @State private var importingCover = false
+    @State private var coverBook: Book?
     @State private var message: String?
     @State private var showingCalibre = false
     @State private var calibrePassword = ""
@@ -105,6 +107,9 @@ struct ContentView: View {
         .onOpenURL(perform: openWidgetShelf)
         .fileImporter(isPresented: $importing, allowedContentTypes: [.json]) { result in
             handle(result)
+        }
+        .fileImporter(isPresented: $importingCover, allowedContentTypes: [.image]) { result in
+            handleCover(result)
         }
         .sheet(isPresented: $showingCalibre) {
             calibreConnectionSheet
@@ -376,9 +381,17 @@ struct ContentView: View {
 
             VStack(spacing: 0) {
                 ForEach(featured) { book in
-                    BookRow(book: book) {
-                        openBook(book)
-                    }
+                    BookRow(
+                        book: book,
+                        open: { openBook(book) },
+                        chooseCover: {
+                            coverBook = book
+                            importingCover = true
+                        },
+                        useGeneratedCover: book.artwork == nil ? nil : {
+                            removeArtwork(for: book)
+                        }
+                    )
                     if book.id != featured.last?.id {
                         Divider().padding(.leading, 34)
                     }
@@ -743,6 +756,50 @@ struct ContentView: View {
         }
     }
 
+    private func handleCover(_ result: Result<URL, Error>) {
+        guard let book = coverBook else { return }
+        coverBook = nil
+        do {
+            let url = try result.get()
+            let accessed = url.startAccessingSecurityScopedResource()
+            defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+            let data = try Data(contentsOf: url)
+            guard let artwork = CoverArtworkProcessor.process(
+                data: data, book: book, identifier: "manual|\(book.id)"
+            ) else {
+                message = "That image could not be used as a cover."
+                return
+            }
+            updateArtwork(artwork, for: book)
+            message = "Updated the cover for \(book.title)."
+        } catch {
+            message = "Cover import failed: \(error.localizedDescription)"
+        }
+    }
+
+    private func removeArtwork(for book: Book) {
+        if let key = book.artwork?.key { ArtworkStore.remove(key: key) }
+        updateArtwork(nil, for: book)
+        message = "\(book.title) now uses a generated WoodWork spine."
+    }
+
+    private func updateArtwork(_ artwork: BookArtwork?, for book: Book) {
+        var stored = Library.storedBooks()
+        guard let index = stored.firstIndex(where: { $0.id == book.id }) else {
+            message = "Import your own library before replacing demo covers."
+            return
+        }
+        stored[index].artwork = artwork
+        do {
+            try Library.save(stored)
+            books = Library.load()
+            widgetDisplayRevision &+= 1
+            WidgetCenter.shared.reloadAllTimelines()
+        } catch {
+            message = "Could not save the cover: \(error.localizedDescription)"
+        }
+    }
+
     /// Pick up whatever the Mac scanner last published. Quiet on failure —
     /// there's usually just nothing there yet, and the bundled library still
     /// shows a shelf.
@@ -918,12 +975,16 @@ struct ContentView: View {
 private struct BookRow: View {
     let book: Book
     let open: () -> Void
+    let chooseCover: () -> Void
+    let useGeneratedCover: (() -> Void)?
 
     var body: some View {
-        Button(action: open) {
-            HStack(spacing: 12) {
+        HStack(spacing: 8) {
+            Button(action: open) {
+                HStack(spacing: 12) {
                 RoundedRectangle(cornerRadius: 1, style: .continuous)
-                    .fill(Color(red: book.cloth.r, green: book.cloth.g, blue: book.cloth.b))
+                    .fill(book.artwork?.primaryColor
+                          ?? Color(red: book.cloth.r, green: book.cloth.g, blue: book.cloth.b))
                     .frame(width: max(4, book.spineWidth * 0.3), height: 30)
 
                 VStack(alignment: .leading, spacing: 1) {
@@ -946,12 +1007,28 @@ private struct BookRow: View {
                 Image(systemName: "chevron.right")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.tertiary)
+                }
+                .contentShape(Rectangle())
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
-            .contentShape(Rectangle())
+            .buttonStyle(.plain)
+            .disabled(book.readerURL == nil)
+
+            Menu {
+                Button("Choose Cover Image…", systemImage: "photo") { chooseCover() }
+                if let useGeneratedCover {
+                    Button("Use Generated Spine", systemImage: "books.vertical") {
+                        useGeneratedCover()
+                    }
+                }
+            } label: {
+                Image(systemName: "ellipsis")
+                    .frame(width: 28, height: 30)
+                    .contentShape(Rectangle())
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
-        .disabled(book.readerURL == nil)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 9)
     }
 }

@@ -141,7 +141,7 @@ struct CalibreServerClient {
         guard let (data, response) = try? await URLSession.shared.data(for: request),
               let http = response as? HTTPURLResponse,
               (200..<300).contains(http.statusCode) else { return nil }
-        return CalibreCoverProcessor.process(data: data, book: book, identifier: "\(libraryID)|\(id)")
+        return CoverArtworkProcessor.process(data: data, book: book, identifier: "\(libraryID)|\(id)")
     }
 
     private func makeBook(id: Int, libraryID: String, metadata: [String: Any]) -> Book? {
@@ -206,7 +206,7 @@ struct CalibreServerClient {
     }
 }
 
-private enum CalibreCoverProcessor {
+enum CoverArtworkProcessor {
     static func process(data: Data, book: Book, identifier: String) -> BookArtwork? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let original = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }

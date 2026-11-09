@@ -1,5 +1,5 @@
 // Self-check for the two bits of real logic: spine thickness and shelf packing.
-//   swiftc -o /tmp/check Shared/Book.swift Shared/ShelfView.swift Tests/main.swift && /tmp/check
+//   swiftc -o /tmp/check Shared/Book.swift Shared/CloudLibrary.swift Shared/ShelfView.swift Tests/main.swift && /tmp/check
 import Foundation
 
 func book(_ title: String, _ pages: Int) -> Book {
