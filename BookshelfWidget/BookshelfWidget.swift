@@ -8,6 +8,7 @@ struct ShelfEntry: TimelineEntry {
     let theme: ShelfTheme
     let shelf: Int
     let layoutVariant: ShelfLayoutVariant
+    let artworkMode: BookArtworkMode
 }
 
 struct Provider: AppIntentTimelineProvider {
@@ -21,7 +22,8 @@ struct Provider: AppIntentTimelineProvider {
             books: .samples,
             theme: ShelfSettings.loadTheme(for: 1),
             shelf: 1,
-            layoutVariant: .balanced
+            layoutVariant: .balanced,
+            artworkMode: ShelfSettings.loadArtworkMode(for: 1)
         )
     }
 
@@ -80,7 +82,8 @@ struct Provider: AppIntentTimelineProvider {
             books: displayed,
             theme: ShelfSettings.loadTheme(for: shelf),
             shelf: shelf,
-            layoutVariant: .forShelf(shelf)
+            layoutVariant: .forShelf(shelf),
+            artworkMode: ShelfSettings.loadArtworkMode(for: shelf)
         )
     }
 }
@@ -91,6 +94,7 @@ struct BookshelfWidgetView: View {
         ShelfView(
             books: entry.books,
             theme: entry.theme,
+            artworkMode: entry.artworkMode,
             layoutVariant: entry.layoutVariant,
             preferredRows: ShelfLayoutVariant.rowCount(forShelf: entry.shelf)
         )

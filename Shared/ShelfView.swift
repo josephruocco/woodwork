@@ -52,6 +52,7 @@ private func flatLength(_ book: Book, _ spineHeight: CGFloat) -> CGFloat {
 struct ShelfView: View {
     let books: [Book]
     var theme: ShelfTheme = .classic
+    var artworkMode: BookArtworkMode = .woodwork
     var layoutVariant: ShelfLayoutVariant = .balanced
     var preferredRows: Int? = nil
 
@@ -109,7 +110,8 @@ struct ShelfView: View {
                     theme: theme,
                     row: index,
                     layoutVariant: layoutVariant,
-                    compact: compact
+                    compact: compact,
+                    artworkMode: artworkMode
                 )
                 .frame(width: cavity.width, height: cavity.height, alignment: .bottomLeading)
                 .clipped()
@@ -133,7 +135,8 @@ struct ShelfView: View {
 
             HStack(alignment: .bottom, spacing: 1.5) {
                 ForEach(row) { item in
-                    ItemView(item: item, spineHeight: spineSpace, theme: theme)
+                    ItemView(item: item, spineHeight: spineSpace, theme: theme,
+                             artworkMode: artworkMode)
                 }
                 Spacer(minLength: 0)
             }
@@ -353,6 +356,7 @@ private struct FramedCavityBooks: View {
     let row: Int
     let layoutVariant: ShelfLayoutVariant
     let compact: Bool
+    let artworkMode: BookArtworkMode
 
     var body: some View {
         GeometryReader { geo in
@@ -389,14 +393,14 @@ private struct FramedCavityBooks: View {
         switch (layoutVariant, row) {
         case (.balanced, 0):
             HStack(alignment: .bottom, spacing: 0) {
-                FeaturedBookView(book: book(0), theme: theme)
+                FeaturedBookView(book: book(0), theme: theme, artworkMode: artworkMode)
                     .frame(width: size.width * 0.17, height: size.height * 0.88)
                 uprightRun([1, 2, 3], width: size.width * 0.16, size: size,
                            heights: [0.78, 0.86, 0.81])
                 fittedStack([4, 5, 6], width: size.width * 0.23, size: size)
                 uprightRun([7, 8, 9], width: size.width * 0.17, size: size,
                            heights: [0.84, 0.77, 0.88])
-                FeaturedBookView(book: book(10), theme: theme)
+                FeaturedBookView(book: book(10), theme: theme, artworkMode: artworkMode)
                     .frame(width: size.width * 0.18, height: size.height * 0.84)
                 uprightRun([11, 12], width: size.width * 0.09, size: size,
                            heights: [0.76, 0.82])
@@ -405,7 +409,7 @@ private struct FramedCavityBooks: View {
             HStack(alignment: .bottom, spacing: 0) {
                 uprightRun([0, 1, 2, 3], width: size.width * 0.25, size: size,
                            heights: [0.88, 0.82, 0.91, 0.79])
-                FeaturedBookView(book: book(4), theme: theme)
+                FeaturedBookView(book: book(4), theme: theme, artworkMode: artworkMode)
                     .frame(width: size.width * 0.21, height: size.height * 0.92)
                 uprightRun(Array(5...12), width: size.width * 0.54, size: size,
                            heights: [0.84, 0.90, 0.81, 0.86, 0.78, 0.88, 0.83, 0.89])
@@ -415,14 +419,14 @@ private struct FramedCavityBooks: View {
                 fittedStack([0, 1, 2], width: size.width * 0.24, size: size)
                 uprightRun(Array(3...7), width: size.width * 0.32, size: size,
                            heights: [0.82, 0.90, 0.77, 0.86, 0.80])
-                FeaturedBookView(book: book(8), theme: theme)
+                FeaturedBookView(book: book(8), theme: theme, artworkMode: artworkMode)
                     .frame(width: size.width * 0.22, height: size.height * 0.90)
                 uprightRun(Array(9...13), width: size.width * 0.22, size: size,
                            heights: [0.84, 0.76, 0.88, 0.81, 0.86])
             }
         case (.stacked, _):
             HStack(alignment: .bottom, spacing: 0) {
-                FeaturedBookView(book: book(0), theme: theme)
+                FeaturedBookView(book: book(0), theme: theme, artworkMode: artworkMode)
                     .frame(width: size.width * 0.20, height: size.height * 0.91)
                 uprightRun(Array(1...6), width: size.width * 0.40, size: size,
                            heights: [0.84, 0.90, 0.79, 0.87, 0.81, 0.88])
@@ -434,22 +438,22 @@ private struct FramedCavityBooks: View {
             HStack(alignment: .bottom, spacing: 0) {
                 uprightRun(Array(0...4), width: size.width * 0.34, size: size,
                            heights: [0.79, 0.88, 0.82, 0.91, 0.76])
-                FeaturedBookView(book: book(5), theme: theme)
+                FeaturedBookView(book: book(5), theme: theme, artworkMode: artworkMode)
                     .frame(width: size.width * 0.20, height: size.height * 0.92)
                 uprightRun(Array(6...10), width: size.width * 0.30, size: size,
                            heights: [0.86, 0.80, 0.89, 0.77, 0.84])
-                FeaturedBookView(book: book(11), theme: theme)
+                FeaturedBookView(book: book(11), theme: theme, artworkMode: artworkMode)
                     .frame(width: size.width * 0.16, height: size.height * 0.84)
             }
         case (.gallery, _):
             HStack(alignment: .bottom, spacing: 0) {
                 uprightRun(Array(0...3), width: size.width * 0.24, size: size,
                            heights: [0.88, 0.81, 0.91, 0.79])
-                FeaturedBookView(book: book(4), theme: theme)
+                FeaturedBookView(book: book(4), theme: theme, artworkMode: artworkMode)
                     .frame(width: size.width * 0.20, height: size.height * 0.91)
                 uprightRun(Array(5...8), width: size.width * 0.25, size: size,
                            heights: [0.84, 0.90, 0.78, 0.86])
-                FeaturedBookView(book: book(9), theme: theme)
+                FeaturedBookView(book: book(9), theme: theme, artworkMode: artworkMode)
                     .frame(width: size.width * 0.18, height: size.height * 0.87)
                 uprightRun(Array(10...12), width: size.width * 0.13, size: size,
                            heights: [0.82, 0.89, 0.77])
@@ -534,7 +538,8 @@ private struct FramedCavityBooks: View {
             item: .stack(selected),
             spineHeight: width / maxHeightFactor,
             theme: theme,
-            thicknessScale: thicknessScale
+            thicknessScale: thicknessScale,
+            artworkMode: artworkMode
         )
         .frame(width: width, height: size.height, alignment: .bottomLeading)
         .clipped()
@@ -547,7 +552,8 @@ private struct FramedCavityBooks: View {
             spineHeight: height,
             theme: theme,
             thicknessScale: scale,
-            forceTitle: forceTitle
+            forceTitle: forceTitle,
+            artworkMode: artworkMode
         )
     }
 
@@ -565,6 +571,7 @@ private struct ItemView: View {
     let theme: ShelfTheme
     var thicknessScale: CGFloat = 1
     var forceTitle = false
+    var artworkMode: BookArtworkMode = .woodwork
 
     var body: some View {
         switch item {
@@ -593,12 +600,13 @@ private struct ItemView: View {
     /// horizontally and the spine thickness becomes the bar's height.
     private func face(_ book: Book, length: CGFloat, vertical: Bool) -> some View {
         let cloth = book.cloth
-        let base = spineBaseColor(cloth)
-        let ink = spineInkColor(cloth)
+        let derived = artworkMode == .originalInspired ? book.artwork : nil
+        let base = derived?.primaryColor ?? spineBaseColor(cloth)
+        let ink = derived?.inkColor ?? spineInkColor(cloth)
         let thickness = book.spineWidth * thicknessScale
 
         return ZStack {
-            spineFill(base: base, cloth: cloth, vertical: vertical)
+            spineFill(base: base, accent: derived?.accentColor, cloth: cloth, vertical: vertical)
 
             gilt(ink, length: length, vertical: vertical)
 
@@ -762,12 +770,13 @@ private struct ItemView: View {
     }
 
     @ViewBuilder
-    private func spineFill(base: Color, cloth: Cloth, vertical: Bool) -> some View {
+    private func spineFill(base: Color, accent: Color?, cloth: Cloth, vertical: Bool) -> some View {
+        let edge = accent ?? shade(cloth, -0.28)
         switch theme {
         case .classic:
             RoundedRectangle(cornerRadius: 1.5, style: .continuous)
                 .fill(LinearGradient(
-                    colors: [base.opacity(0.82), base, base, shade(cloth, -0.28)],
+                    colors: [base.opacity(0.82), base, base, edge],
                     startPoint: vertical ? .leading : .top,
                     endPoint: vertical ? .trailing : .bottom))
         case .walnut:
@@ -890,18 +899,21 @@ private struct ItemView: View {
 private struct FeaturedBookView: View {
     let book: Book
     let theme: ShelfTheme
+    let artworkMode: BookArtworkMode
 
     var body: some View {
         GeometryReader { geo in
             let cloth = book.cloth
-            let base = coverColor(cloth)
-            let ink = cloth.isLight
+            let derived = artworkMode == .originalInspired ? book.artwork : nil
+            let base = derived?.primaryColor ?? coverColor(cloth)
+            let ink = derived?.inkColor ?? (cloth.isLight
                 ? Color(red: 0.16, green: 0.12, blue: 0.09)
-                : Color(red: 0.94, green: 0.88, blue: 0.72)
+                : Color(red: 0.94, green: 0.88, blue: 0.72))
 
             ZStack {
                 realisticCoverTexture(book: book)
                     .colorMultiply(base)
+                    .overlay((derived?.accentColor ?? .clear).opacity(derived == nil ? 0 : 0.18))
                     .overlay(
                         LinearGradient(
                             colors: [.white.opacity(0.10), .clear, .black.opacity(0.16)],

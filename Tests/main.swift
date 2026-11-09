@@ -35,6 +35,17 @@ assert(Book(id: "bad", title: "Bad", author: "A", pages: 200,
 assert(Book(id: "unknown", title: "Unknown", author: "A", pages: 200,
             pagesEstimated: false, assetID: "123", source: "other").readerURL == nil)
 
+// Old exports predate cover metadata and must remain decodable.
+let legacyJSON = #"{"id":"legacy","title":"Legacy","author":"A","pages":200,"pagesEstimated":false}"#
+let legacyBook = try! JSONDecoder().decode(Book.self, from: Data(legacyJSON.utf8))
+assert(legacyBook.artwork == nil)
+
+let coverStudy = BookArtwork(key: "cover", primaryRGB: 0x123456,
+                             accentRGB: 0xabcdef, inkRGB: 0xffffff)
+let artworkBook = Book(id: "art", title: "Art", author: "A", pages: 200,
+                       pagesEstimated: false, artwork: coverStudy)
+assert(try! JSONDecoder().decode(Book.self, from: JSONEncoder().encode(artworkBook)) == artworkBook)
+
 let width: CGFloat = 320
 let spineHeight: CGFloat = 106
 let library = (0..<200).map { book("Book \($0)", 100 + $0 * 7) }

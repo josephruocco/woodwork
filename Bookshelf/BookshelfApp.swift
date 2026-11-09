@@ -25,6 +25,11 @@ struct ContentView: View {
             ($0, ShelfSettings.loadMode(for: $0))
         }
     )
+    @State private var artworkModes = Dictionary(
+        uniqueKeysWithValues: WidgetShelfRegistry.shelfRange.map {
+            ($0, ShelfSettings.loadArtworkMode(for: $0))
+        }
+    )
     @State private var widgetShelves: [Int] = []
     @State private var widgetFamilies: [Int: WidgetFamily] = [:]
     @State private var widgetDisplayRevision = 0
@@ -149,6 +154,22 @@ struct ContentView: View {
         )
     }
 
+    private var selectedArtworkMode: BookArtworkMode {
+        artworkModes[selectedShelf] ?? .woodwork
+    }
+
+    private var selectedArtworkModeBinding: Binding<BookArtworkMode> {
+        Binding(
+            get: { selectedArtworkMode },
+            set: { newMode in
+                artworkModes[selectedShelf] = newMode
+                ShelfSettings.saveArtworkMode(newMode, for: selectedShelf)
+                widgetDisplayRevision &+= 1
+                WidgetCenter.shared.reloadAllTimelines()
+            }
+        )
+    }
+
     private var header: some View {
         HStack(alignment: .firstTextBaseline) {
             Text("WoodWork")
@@ -194,6 +215,17 @@ struct ContentView: View {
                         .fill(insetSurface)
                 )
             }
+
+            Picker("Book appearance", selection: selectedArtworkModeBinding) {
+                ForEach(BookArtworkMode.allCases) { option in
+                    Text(option.label).tag(option)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            Text(selectedArtworkMode.subtitle)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
         }
         .padding(18)
         .background(panelBackground)
@@ -308,6 +340,7 @@ struct ContentView: View {
                 ShelfView(
                     books: widgetBooks(for: shelf),
                     theme: shelfTheme,
+                    artworkMode: artworkModes[shelf] ?? .woodwork,
                     layoutVariant: .forShelf(shelf),
                     preferredRows: ShelfLayoutVariant.rowCount(forShelf: shelf)
                 )

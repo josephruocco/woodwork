@@ -14,6 +14,9 @@ struct Book: Codable, Identifiable, Hashable {
     var assetID: String? = nil
     /// "books", "kindle", or "calibre" — decides where a tap opens.
     var source: String? = nil
+    /// Colors and title treatment derived from the original cover. The actual
+    /// cover image is stored separately so a large library does not bloat JSON.
+    var artwork: BookArtwork? = nil
 
     var shortTitle: String {
         // Subtitles after a colon are noise on a 20pt-wide spine.
@@ -27,6 +30,29 @@ struct Book: Codable, Identifiable, Hashable {
             .replacingOccurrences(of: " The ", with: " ")
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
+}
+
+/// Lightweight artwork metadata shared by the app and widget. Hex values are
+/// 0xRRGGBB; `key` names the separately cached cover and OCR title crop.
+struct BookArtwork: Codable, Hashable {
+    let key: String
+    let primaryRGB: UInt32
+    let accentRGB: UInt32
+    let inkRGB: UInt32
+    var hasCover: Bool = true
+    var hasTitleCrop: Bool = false
+
+    func color(_ value: UInt32) -> Color {
+        Color(
+            red: Double((value >> 16) & 0xff) / 255,
+            green: Double((value >> 8) & 0xff) / 255,
+            blue: Double(value & 0xff) / 255
+        )
+    }
+
+    var primaryColor: Color { color(primaryRGB) }
+    var accentColor: Color { color(accentRGB) }
+    var inkColor: Color { color(inkRGB) }
 }
 
 enum SpineTypographyStyle {
@@ -275,7 +301,25 @@ enum Library {
     /// who hasn't synced a library yet.
     static func demoLibrary() -> [Book]? {
         guard let url = Bundle.main.url(forResource: "demo", withExtension: "json"),
-              let books = decode(url), !books.isEmpty else { return nil }
+              var books = decode(url), !books.isEmpty else { return nil }
+        // Ten books make the cover-derived renderer visible before a real
+        // library is connected. These are deliberately just palette studies;
+        // scanner imports replace them with metadata from the actual cover.
+        let studies: [(UInt32, UInt32, UInt32)] = [
+            (0x792F2F, 0xD7B56D, 0xFFF7E8), (0x243A34, 0xB8A36A, 0xF4E8CE),
+            (0x26364F, 0xC69A4B, 0xFFF4D6), (0xDFCDB2, 0x9B463A, 0x2B2018),
+            (0x7A3D24, 0xE2BC76, 0xFFF6E6), (0x303033, 0xB6473D, 0xF5E9D0),
+            (0x356966, 0xE1C27D, 0xFFF9E9), (0x6C5367, 0xC8A25B, 0xFFF4E0),
+            (0x6C6F41, 0xD2B86D, 0xFFF8E7), (0xB7A78E, 0x394B4A, 0x241D17)
+        ]
+        for index in books.indices.prefix(studies.count) where books[index].artwork == nil {
+            let colors = studies[index]
+            books[index].artwork = BookArtwork(
+                key: "demo-study-\(index)", primaryRGB: colors.0,
+                accentRGB: colors.1, inkRGB: colors.2,
+                hasCover: false, hasTitleCrop: false
+            )
+        }
         return books
     }
 
@@ -380,6 +424,27 @@ enum ShelfTheme: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum BookArtworkMode: String, CaseIterable, Codable, Identifiable {
+    case woodwork
+    case originalInspired
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .woodwork: "WoodWork"
+        case .originalInspired: "Cover-Inspired"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .woodwork: "Generated cloth spines"
+        case .originalInspired: "Colors and title art from your covers"
+        }
+    }
+}
+
 enum ShelfMode: String, CaseIterable, Codable, Identifiable {
     case rediscover
     case surprise
@@ -438,6 +503,7 @@ enum ShelfSettings {
     private static let themeKey = "shelfTheme"
     private static let shelfThemePrefix = "shelfTheme."
     private static let shelfModePrefix = "shelfMode."
+    private static let artworkModePrefix = "bookArtworkMode."
     private static let layoutKey = "shelfLayoutOptions"
     private static let demoKey = "showDemoBooks"
 
@@ -475,6 +541,19 @@ enum ShelfSettings {
     static func saveMode(_ mode: ShelfMode, for shelf: Int) {
         UserDefaults(suiteName: Library.appGroup)?
             .set(mode.rawValue, forKey: shelfModePrefix + String(max(1, shelf)))
+    }
+
+    static func loadArtworkMode(for shelf: Int) -> BookArtworkMode {
+        guard let raw = UserDefaults(suiteName: Library.appGroup)?
+            .string(forKey: artworkModePrefix + String(max(1, shelf))) else {
+            return .woodwork
+        }
+        return BookArtworkMode(rawValue: raw) ?? .woodwork
+    }
+
+    static func saveArtworkMode(_ mode: BookArtworkMode, for shelf: Int) {
+        UserDefaults(suiteName: Library.appGroup)?
+            .set(mode.rawValue, forKey: artworkModePrefix + String(max(1, shelf)))
     }
 
     static func loadLayoutOptions() -> ShelfLayoutOptions {
